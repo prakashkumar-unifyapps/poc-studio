@@ -1,6 +1,6 @@
 ---
 name: asset-run
-description: Makes ONE POC Studio asset on its own — a Requirement Gathering document, a BRD (scoping document), a design system, an app, or the collaterals (demo script, deck, video; any of them) — without a POC and without running the other stages. Collects that asset's prerequisites in the chat first, then runs the existing stage skill unchanged and unattended, has the AI PM review it, writes it to Orbit as a one-off document (a new version every time), shows it in the chat and asks for approval. Loaded by the /poc-studio:requirements, brd, design, app and collaterals commands; not for the full pipeline (/poc-studio:start).
+description: Makes ONE POC Studio asset on its own — a Requirement Gathering document, a BRD (scoping document), wireframes, a design system, an app, or the collaterals (demo script, deck, video; any of them) — without a POC and without running the other stages. Collects that asset's prerequisites in the chat first, then runs the existing stage skill unchanged and unattended, has the AI PM review it, writes it to Orbit as a one-off document (a new version every time), shows it in the chat and asks for approval. Loaded by the /poc-studio:requirements, brd, wireframes, design, app and collaterals commands; not for the full pipeline (/poc-studio:start).
 ---
 
 # One asset, end to end (`asset-run`)
@@ -13,6 +13,7 @@ The full pipeline (`/poc-studio:start`, `poc-orchestrator`) is not involved and 
 |---|---|---|---|---|---|
 | `requirements` | `/poc-studio:requirements` | `requirement-gathering` | `requirement-gathering` | `requirements` | `01-requirement-gathering/` |
 | `brd` | `/poc-studio:brd` | `scoping-l1-first` | `scoping` | `brd` | `02-scoping/` |
+| `wireframes` | `/poc-studio:wireframes` | `wireframes` | `wireframes` | `wireframes` | `02b-wireframes/` |
 | `design` | `/poc-studio:design` | `design-system` | `design-system` | `design_system` | `03-design-system/` |
 | `app` | `/poc-studio:app` | `ua:setup`, `platform-master`, `ua:plan` (Zen) — Stage 4 | `build` (Stage 4b) | `app` | `04-build/` |
 | `collaterals` | `/poc-studio:collaterals` | `poc-collateral-studio` | `collaterals` | `demo_script`, `deck`, `video` (the ones chosen) | `05-collaterals/` |
@@ -43,8 +44,10 @@ sensibly; anything still unclear is asked for in the one question below.
 **Collect each prerequisite in this order, and stop at the first source that has it:**
 1. The command arguments.
 2. An existing workspace for this client and use case (`<cwd>/<client-slug>/<usecase-slug>/`): an approved
-   Requirement Gathering document, `02-scoping/scoping-document.docx`, `03-design-system/*-design-system.html`,
-   `state.json` → `app.preview_url`, earlier one-off outputs in `state.json` → `standalone.runs`. Offer what you find
+   Requirement Gathering document, `02-scoping/scoping-document.docx`, `02b-wireframes/wireframe-manifest.json`, `03-design-system/*-design-system.html`,
+   `state.json` → `app.preview_url`, earlier one-off outputs in `state.json` → `standalone.runs`. Wireframes count only
+   when approved (`stages.wireframes` = `approved`, or a `standalone.runs` wireframes entry with status `done`);
+   unapproved ones are not offered, and the run treats them as absent. Offer what you find
    in one line ("Found `02-scoping/scoping-document.docx` from 28 Oct — use it?"); the newest file first.
 3. Otherwise ask the person: **one** AskUserQuestion call (it can hold up to four questions — e.g. the collaterals
    choice as a multi-select next to a missing BRD — or one plain question for free text) that lists everything still
@@ -62,8 +65,9 @@ on without it):
 |---|---|---|---|
 | requirements | Client name · Use case · Slack and Google Drive connectors (their tools are in the session) | Client website · Gmail and Calendar connectors | Connectors: stop and ask the person to connect them (in Claude Code: `/mcp`, or as a claude.ai connector), then check again, as Setup does |
 | brd | Client name · Use case · **At least one input**: an RG document, meeting notes, an email, client files, or a Slack or Drive link | Client website | Offer two options: "Run `/poc-studio:requirements` first" or "Paste or attach what you have" |
-| design | Client name · Use case · **BRD or scoping document** (.docx or PDF) · Client website (ask once; accept "derive it", then the skill derives it) | Client logo file · Brand guidelines | Offer "Run `/poc-studio:brd` first" or "Attach a BRD" |
-| app | Client name · Use case · **BRD or scoping document** · The UnifyApps Headless plugin (`ua`) installed and this folder set up on `orbit.uat.unifyapps.com` (`/ua:setup`) · The collateral tools (Playwright, for the Stage 4b walk) and a valid Orbit sign-in, as for collaterals below · Not a folder whose UnifyApps Headless setup belongs to a pipeline run (below) | Design system HTML (without one, say the build uses UnifyApps Headless's default look, and offer `/poc-studio:design` first) | Plugin or setup missing: tell the person what to install or run, then check again |
+| wireframes | Client name · Use case · **BRD or scoping document** (.docx or PDF) | — | Offer "Run `/poc-studio:brd` first" or "Attach a BRD" |
+| design | Client name · Use case · **BRD or scoping document** (.docx or PDF) · Client website (ask once; accept "derive it", then the skill derives it) | Wireframes (an approved `wireframe-manifest.json` from this workspace; without it, the design system works from the BRD alone, and offer `/poc-studio:wireframes` first) · Client logo file · Brand guidelines | Offer "Run `/poc-studio:brd` first" or "Attach a BRD" |
+| app | Client name · Use case · **BRD or scoping document** · The UnifyApps Headless plugin (`ua`) installed and this folder set up on `orbit.uat.unifyapps.com` (`/ua:setup`) · The collateral tools (Playwright, for the Stage 4b walk) and a valid Orbit sign-in, as for collaterals below · Not a folder whose UnifyApps Headless setup belongs to a pipeline run (below) | Approved wireframes (manifest and frames; else the build follows the BRD's page specs alone) · Design system HTML (without one, say the build uses UnifyApps Headless's default look, and offer `/poc-studio:design` first) | Plugin or setup missing: tell the person what to install or run, then check again |
 | collaterals | Client name · Use case · **Which collaterals** (always asked, below) · **App preview link** (Preview link rule) · Orbit sign-in valid · The collateral tools for the ones chosen | BRD or scoping document (strongly recommended: it drives the story and personas) · RG document · Audience: business, technical or mixed (else the skill decides) | Ask |
 
 **Collaterals — which ones (always asked).** Unless the command already says which (the extra argument or words such
@@ -110,7 +114,7 @@ once. Keep their email if the profile gives it. Save both in `state.json` → `s
 
 1. Use the pipeline's tree: `<cwd>/<client-slug>/<usecase-slug>/` (slugs: lower case, every run of non-letters/digits
    → `-`, no `-` at the start or end: `[Test] Acme` → `test-acme`). Create the folders the asset needs
-   (`_inputs/`, `01-requirement-gathering/files/`, `02-scoping/`, `03-design-system/`, `04-build/`, `05-collaterals/`,
+   (`_inputs/`, `01-requirement-gathering/files/`, `02-scoping/`, `02b-wireframes/`, `03-design-system/`, `04-build/`, `05-collaterals/`,
    `research/`, `reviews/`) and `context-log.md` if it does not exist (first line: client, use case, "one-off runs", date).
 2. **Protect what is already there.** Before a stage writes a file that already exists, copy the existing file to
    `<stage folder>/_previous/<file name> <YYYYMMDD-HHMM>` (never delete). If that file is an output of a pipeline run
@@ -157,8 +161,10 @@ sections name** (M1–M6, M4a, M4b, Reconcile, the G4 upload): a one-off writes 
   document, or the notes, emails and files in `_inputs/`); **input 2** = every client file collected (`_inputs/` and,
   if an RG run made them, `01-requirement-gathering/files/`); output `<workspace>/02-scoping/scoping-document.docx`
   (`_working/` beside it).
+- **wireframes** — orchestrator § 2b: `wireframes` with the BRD collected as "the approved scoping document"; output
+  `<workspace>/02b-wireframes/` (the PDF is what goes to Orbit). The PDF is opened locally for the person in § 5.2.
 - **design** — orchestrator § 3, unchanged and unattended: the BRD collected is "the approved scoping document"; the
-  website and any logo file or brand guidelines collected are passed with it; output
+  wireframes (when collected), the website and any logo file or brand guidelines collected are passed with it; output
   `<workspace>/03-design-system/<slug>-design-system.html`. The file is opened locally for the person in § 5.2,
   once it has passed review.
 - **app** — orchestrator § 4 as written, writing its files in `04-build/one-off/` (`build-summary.md`,
@@ -171,6 +177,8 @@ sections name** (M1–M6, M4a, M4b, Reconcile, the G4 upload): a one-off writes 
     `<Client> — <Use case>` and records its id in the run entry (`solution`). A later run of the command, or a change
     request, reuses that recorded solution (its id is "already recorded in this workspace", as the orchestrator's
     Solution rule allows) and makes the change as direct changes through `ua-change` — never a second solution.
+  - **Wireframes:** when approved wireframes were collected, include orchestrator § 4's Wireframes item (and the
+    frames in the 4b review's upstream); otherwise leave it out, as for a run whose `stages.wireframes` is `skipped`.
   - **No design system:** leave the build request's design-system item out, tell UnifyApps Headless to use its default
     look, and give the 4b review the BRD alone as upstream (no `#build-plan` fidelity check).
   - **4b inputs:** when the BRD has no page list (§ 11) or glossary (Appendix B), build `routes.json` from UnifyApps
@@ -198,7 +206,7 @@ this run's first `<n>` in the run entry (`first_review`). `round` counts this ru
 for a change request; `prior_verdict` is always given explicitly from round 2 on (this run's previous verdict, never
 another run's). `work_id` = the POC ID if given, else
 `SA-<client-slug>__<usecase-slug>`; `stage` from the table above; `artifacts` = the asset's output(s); `upstream` = the
-input the asset was made from (the RG document for a BRD, the BRD for a design system or app, the BRD and the app for
+input the asset was made from (the RG document for a BRD, the BRD for wireframes, the BRD and any approved wireframes for a design system or an app, the BRD and the app for
 collaterals; none for requirements); `owner_profile` as in § 2; for collaterals,
 `known: ["collaterals chosen: <list>; the others were not requested and are not missing"]`. Handle the verdict
 exactly as the orchestrator's table does: REVISE with a response file (at most 2 REVISE rounds), BLOCK, the round-3
@@ -218,7 +226,7 @@ ruling, ASK_HUMAN, research requests. For the app, this is the Stage 4b walk ins
    - the app row(s): `https://poc-build-loop-orbit.tensor-uat.unifyapps.com/assets/<type-slug>`;
    - the AI PM gate summary: `python3 "$R/lessons.py" gate <workspace> <stage> --since <first_review>` (this run's
      reviews only);
-   - for a design system, also open the file locally now (`open <file>` on a Mac, `xdg-open` on Linux);
+   - for a design system or wireframes, also open the file (the HTML or the PDF) locally now (`open <file>` on a Mac, `xdg-open` on Linux);
    - any `check_this` assumptions and anything still open.
 3. Ask with AskUserQuestion: **Approve** / **Request changes** (they type the changes in "Other").
 

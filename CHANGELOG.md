@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.26.0
+- **New stage 2b · Wireframes** in the Plan phase, between the BRD and the design system (skill `wireframes`). From the approved scoping document it writes a short JSON layout spec; a bundled script (`render.py`, Pillow only, no browser, fonts included) draws one low-fidelity grey frame per page at the persona's width, a PDF of all frames, and `wireframe-manifest.json`: every component with its pages, CMP IDs, variants and states. Generic regions are **slots** that only name their component; the page's defining parts are drawn in detail with the BRD's real copy. `coverage.py` checks every §11 page and §23 CMP ID against the BRD. It has its own approval step inside G2 (Orbit: a `wireframes` document under Plan, M1w/M2w; no new gate).
+- **Map component reference** (`wireframes/references/map-component.md`), taken from a working build: one shared map, four modes (rings, dots, arcs, radius), full-bleed with floating panels, whole-step fits padded for panels, screen-space health rings, collision-free labels, hover-to-card. Wireframes draw map pages with it, the design system styles it, platform-master adds a `Map:` pointer and checks Zen's plan against it, and the AI PM checks it at 4b. Scoping now gives location records latitude/longitude and seeds real coordinates.
+- **Design system (v10.1):** with approved wireframes, the manifest is the component inventory (variants still capped at three per family), the frames are the layouts in `#build-plan`, the five screens are frames at high fidelity, nothing is proposed; the baseline (sign-in, statuses, empty/error/loading/no-access, toast, confirm, input states, both themes) is always built. Without wireframes it works as before.
+- **Build:** the frames and manifest go in the build request; platform-master flags a page whose layout differs from its frame.
+- **AI PM:** new `wireframes` lens and lesson stage; the design-system and 4b reviews check against the frames.
+- **One asset:** `/poc-studio:wireframes <Client> | <Use case>`; `/poc-studio:design` takes approved wireframes when the folder has them.
+- Runs started before 1.26 resume without wireframes when their design system has already started.
+
 ## 1.25.1
 - Removed `/poc-studio:research-report`. Research is not a stage of the POC journey, so it is no longer made as a one-off asset: the command, its `asset-run` row and section, the one-off Orbit `research` document type and its README rows are gone. The one-asset commands are now `requirements`, `brd`, `design`, `app` and `collaterals`. The `research` skill stays: the stages and the AI PM still call it for outside facts. The full pipeline (`/poc-studio:start`) is unchanged.
 

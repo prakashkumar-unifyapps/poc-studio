@@ -60,6 +60,36 @@ a cut that a human decision approved.
 
 ---
 
+## wireframes (kind: design, low fidelity)
+
+**Re-run:**
+- Render the spec yourself: `python3 "$W/render.py" <spec> <tmp>` (`W` = the request's `scripts.wireframes`) (a spec error is a finding with its
+  line), then `python3 "$W/coverage.py" <scoping docx> <manifest>`: every §11 page has a frame and
+  every §23 CMP ID is on a block. Each gap is a finding.
+- Count: frames per page (extra frames only for an open panel, drawer, modal, map mode or phone layout), components in
+  the manifest, components with more than three `variants` (a finding). `features` and `page_parts` are not variants.
+
+**Judge (from the PNGs):**
+- **Each frame answers its page's question.** The §11 Screen UX question, the one primary CTA, the hero content above
+  the fold at 1280×800, the filters with their values, the exact copy. A frame whose hero is a KPI strip on a doer's
+  home is a finding (scoping's home rule).
+- **Slots vs detail.** The page's defining region is drawn in detail with real wording; generic regions are slots
+  naming a component, a count, variants and states. A slot for the hero, or detail spent on a generic chart, is a
+  finding.
+- **One name per component.** The same thing has the same component name on every page; two names for one thing, or
+  one name for two different things, is a finding.
+- **Maps.** A page whose main question is *where* uses `layout: map` and follows `map-component.md` (map is the page,
+  floating panels, legend in the screen's own words, mode fits the question, data contract with lat/lng fields that
+  exist in §12). A map in a card, or a map without coordinates in the data model, is blocking.
+- **Agent and irreversible action.** The agent appears as a drawer frame; the one irreversible action has its confirm
+  modal frame.
+- **Nothing L2.** A region or component that only an L2 feature needs is a finding: remove it.
+
+**Never:** greys, one font, no brand or icons; empty slots; the design system's job (colour, type, variants beyond the
+manifest's list); the render's own look.
+
+---
+
 ## design-system (kind: design)
 
 **Re-run:**
@@ -68,6 +98,9 @@ a cut that a human decision approved.
   with its `where` list.
 - Count by script: component pages, `<template class="device">` screens (≤ 5), `#style-sets` with one active set,
   `data-active` on every specimen, every L1 feature ID and CMP ID from the scoping doc present in the page inventory.
+  With approved wireframes: the `data-component` values equal the manifest's components plus the baseline (an extra
+  or a missing one is a finding), every frame's page ID without its letter suffix is in `#build-plan`, and each drawn screen keeps its frame's
+  regions in the same order.
 - Exact wording: every quoted refusal/message in scoping §8.2 appears verbatim in the flow diagrams.
 
 **Judge (from your own screenshots, not the skill's):**
@@ -109,7 +142,9 @@ first pass; this is the independent one. The app is opened from `app.preview_url
 - **Storyline.** Walk scoping §20.2 step by step on the screenshots. Each step: right page, right record in the right
   state, the proof visible without extra clicks.
 - **Fidelity (R8).** Each page's pattern matches its `#build-plan` entry; only active variants; tokens only; agent in the
-  drawer. Compare side by side with the drawn screens.
+  drawer. Compare side by side with the drawn screens and the approved wireframe frames (`02b-wireframes/png/`): same
+  regions in the same order. On a map page, check the map-component behaviour: rings split on zoom, labels never
+  overlap, the card opens on hover and stays on click, sites stay clear of open panels, the legend's words match.
 - **Copy lens.** Read `copy.json` against the glossary (scoping Appendix B) and slop C1–C7: one name per thing,
   outcome-named buttons, exact refusal wording, no jargon, sentence case.
 - **Reverse trace.** Anything visible that no L1 feature asked for (extra tab, extra page, extra chart) is a finding:

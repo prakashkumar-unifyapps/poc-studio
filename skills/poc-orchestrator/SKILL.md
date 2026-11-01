@@ -1,6 +1,6 @@
 ---
 name: poc-orchestrator
-description: Runs the UnifyApps POC Studio pipeline end to end for one client use case — Requirement Gathering → Scoping → Design System → UnifyApps Headless build → Collaterals — with the AI PM checking every stage and answering every clarification question, an approval gate after each stage, and every file saved in the local client folder. Use when someone runs /poc-studio:start, says "start a POC for a client", or asks to resume a POC Studio run.
+description: Runs the UnifyApps POC Studio pipeline end to end for one client use case — Requirement Gathering → Scoping → Wireframes → Design System → UnifyApps Headless build → Collaterals — with the AI PM checking every stage and answering every clarification question, an approval gate after each stage, and every file saved in the local client folder. Use when someone runs /poc-studio:start, says "start a POC for a client", or asks to resume a POC Studio run.
 ---
 
 # POC Studio orchestrator
@@ -10,9 +10,9 @@ yourself: each stage has its own skill, and you call it, check it with the revie
 person for approval, and hand the approved files to the next stage.
 
 ```
-Start → 0 Setup → 1 Requirement Gathering → 2 Scoping → 3 Design System → 4 Build → 5 Collaterals → Done
-                         │                        │               │             │              │
-                     AI PM + gate           AI PM + gate     AI PM + gate   Zen plan       AI PM + gate
+Start → 0 Setup → 1 Requirement Gathering → 2 Scoping → 2b Wireframes → 3 Design System → 4 Build → 5 Collaterals → Done
+                         │                        │              │                 │             │              │
+                     AI PM + gate           AI PM + gate    AI PM + gate      AI PM + gate   Zen plan       AI PM + gate
                                                                             (platform-master review,
                                                                              you approve) → parallel
                                                                             build + test → AI PM walk
@@ -41,7 +41,7 @@ Then call it at every write-back moment listed under "Orbit write-back at each g
 channels, email threads and Drive folders mix them. Every stage works on **this** use case only:
 - Requirement Gathering searches with the client name **and** the use-case terms, keeps material about this use case,
   and lists material about the client's other use cases as "other use case — not used" instead of mixing it in.
-- Scoping, Design System, UnifyApps Headless and Collaterals receive the use case name with every call, and the reviewer checks
+- Scoping, Wireframes, Design System, UnifyApps Headless and Collaterals receive the use case name with every call, and the reviewer checks
   that each output stays on it.
 - Each use case gets its own workspace, so two POCs for the same client never overwrite each other.
 
@@ -54,6 +54,7 @@ if a same-named skill exists from elsewhere, prefer the `poc-studio:` one.
 |---|---|
 | 1 Requirement Gathering | `requirement-gathering` |
 | 2 Scoping | `scoping-l1-first` |
+| 2b Wireframes | `wireframes` |
 | 3 Design System | `design-system` |
 | 4 Build | `/ua:setup`, then `/ua:plan` in Zen (separate UnifyApps Headless plugin, `ua`) |
 | 4 Build, platform knowledge | `platform-master` (best-practice pointers, Zen plan review, browser fallback) |
@@ -82,6 +83,11 @@ and any later session — can read them:
   02-scoping/
     scoping-document.docx               the build plan (Part A proposal, Part B build spec)
     _working/                           scoping's working notes, research, evidence log
+  02b-wireframes/
+    <slug>.wireframe.json               the layout spec (the wireframes skill writes it; render.py draws it)
+    png/<page-id>.png                   one low-fidelity frame per page
+    <slug>-wireframes.pdf               all frames in nav order (what the person approves; what goes to Orbit)
+    wireframe-manifest.json             the closed component list the design system designs and the build uses
   03-design-system/
     <slug>-design-system.html           the design system HTML UnifyApps Headless reads (one self-contained file)
   04-build/
@@ -118,6 +124,7 @@ and the collateral brief (`brief.json` → `"poc_id"`, internal only). Create th
   "stages": {
     "requirement-gathering": { "status": "approved", "output": "01-requirement-gathering/Requirement Gathering - Acme Beverages - Shelf Compliance.docx", "review_rounds": 1 },
     "scoping":       { "status": "in_review" },
+    "wireframes":    { "status": "pending" },
     "design-system": { "status": "pending" },
     "build":         { "status": "pending" },
     "collaterals":   { "status": "pending" } },
@@ -136,8 +143,10 @@ This file is the reviewer's memory of the use case; keep it factual and short.
 ## Resuming
 
 If `<cwd>/<client-slug>/<usecase-slug>/state.json` exists (and has the same POC ID), read it and `context-log.md`, tell the person in one line where the
-run stands, and continue from the first stage that is not `approved`. Never redo an approved stage unless the
-person asks. **First run the orbit-writeback skill's Reconcile check**, so any approval or document version that never
+run stands, and continue from the first stage that is not `approved` (or `skipped`). Never redo an approved stage unless the
+person asks. A run started before Wireframes existed has no `wireframes` entry: if its design system is already past
+`pending`, add `"wireframes": { "status": "skipped" }` and carry on (the design system then reads the scoping document
+alone, as before); otherwise add it as `pending`, and Wireframes runs next after Scoping. **First run the orbit-writeback skill's Reconcile check**, so any approval or document version that never
 reached Orbit is written before the run goes on.
 
 ## Questions never go straight to the person
@@ -194,7 +203,7 @@ request_id: <slug>-<stage>-<n>
 workspace: <abs workspace path>
 work_id: <POC ID>
 mode: review | resolve
-stage: requirement-gathering | research | scoping | design-system | build | collaterals
+stage: requirement-gathering | research | scoping | wireframes | design-system | build | collaterals
 round: 1 | 2 | 3
 owner: the person running POC Studio
 owner_profile: <state.json owner_profile>                   # v1.0: whose taste profile the AI PM applies
@@ -229,7 +238,7 @@ Remove the autopilot file, then:
 2. Ask with AskUserQuestion: **Approve and continue to <next stage>** / **Request changes** (they can type the
    changes in "Other").
 3. **Approve** → mark the stage `approved` in `state.json`, log it, run `python3 "$R/lessons.py" record <workspace>
-   <stage> approved`, run the Orbit approval write (M2 / M2a) and **confirm it landed** (orbit-writeback: "Confirm
+   <stage> approved`, run the Orbit approval write (M2 / M2a / M2w) and **confirm it landed** (orbit-writeback: "Confirm
    every approval"); only then move on to the next stage.
    **Changes** → log the feedback verbatim (it is now a human decision for every later review), and also
    `python3 "$R/lessons.py" capture <workspace> <stage> "<their words, verbatim>"` and `… record <workspace> <stage>
@@ -247,8 +256,8 @@ reference). Do the write **before** putting the gate to the person (posting) and
 
 | In the run | Orbit moment (orbit-writeback) |
 |---|---|
-| Stage done + reviewed, before its gate | **M1** — G1 (RG + every discovered client file) · G2a (scoping doc) · G2b (design system) · G3 (published app) |
-| Person approves | **M2** — G1 · G2a (scoping: BRD approved only) · G2 (design system: G2 approved) · G3 |
+| Stage done + reviewed, before its gate | **M1** — G1 (RG + every discovered client file) · G2a (scoping doc) · G2w (wireframes PDF) · G2b (design system) · G3 (published app) |
+| Person approves | **M2** — G1 · G2a (scoping: BRD approved only) · G2w (wireframes approved only) · G2 (design system: G2 approved) · G3 |
 | Person asks for changes (their text, verbatim) | **M3** — Iteration row + activities; more text about the same change is added to that iteration |
 | The reworked document is ready, before re-gating | **M5** — new version, old one superseded, iteration closed |
 | Collaterals approved | **M1 · G4** — upload script PDF, deck, video; demo_ready |
@@ -290,6 +299,9 @@ except at the start (the POC ID must be verified).
    human decisions** (the owner set them for every run; the reviewer applies them):
    - Questions during stages are answered by the reviewer from context and assumptions, not the person (except, in
      Stage 4, Zen's planning questions and plan approval and every `CONFIRM_REQUIRED`, which are the person's).
+   - Wireframes: the stage runs unattended; low fidelity (greys, real copy, slots for generic components); a map
+     page follows the wireframes skill's map-component reference; the approved manifest is the design system's
+     component list.
    - Design system: the stage runs unattended (the person is treated as absent for the skill's stops);
      brand-colour conflicts are settled by the design-system skill's own brand source order, without
      asking; if no client logo file exists, the logo kit uses the UnifyApps logo (labelled stand-in); the output is
@@ -324,7 +336,9 @@ except at the start (the POC ID must be verified).
      with `source ~/.local/poc-collateral/env.sh && ` once that file exists (each shell starts fresh).
    Log what was installed in `context-log.md`.
 5. **AI PM (v1.0).** Let `R` be the ai-pm skill's `scripts/` folder
-   (`find ~/.claude/plugins -path '*ai-pm/scripts/lessons.py' -exec dirname {} \;`).
+   (`find ~/.claude/plugins -path '*ai-pm/scripts/lessons.py' -exec dirname {} \;`), and `W` the wireframes skill's
+   (`find ~/.claude/plugins -path '*wireframes/scripts/render.py' -exec dirname {} \; | head -1`); give both paths to
+   the AI PM in every request (`scripts: {ai_pm: <R>, wireframes: <W>}`).
    - `python3 "$R/lessons.py" init` (seeds the lesson bank once per machine; never overwrites) and
      `pip install pyyaml` into the shared venv if `python3 -c "import yaml"` fails.
    - Set `state.json` → `"owner_profile"`: the POC owner's email in lower case, from Orbit setup (`orbit.owner.email`).
@@ -365,10 +379,27 @@ except at the start (the POC ID must be verified).
   M3 on changes; M5 before re-gating.
 - Gate. Show the counts (L1 / L2 features, pages, objects, agents, workflows) and the top assumptions.
 
+## 2b · Wireframes
+
+Part of the Plan phase (G2), between the BRD and the design system: the BRD says what is built, the wireframes fix what
+is on each page and where, and the design system then designs only those components.
+
+- Create the autopilot file. Call `wireframes` (Skill tool: `poc-studio:wireframes`) with the client name, the use
+  case, the approved `02-scoping/scoping-document.docx` and the output folder `<workspace>/02b-wireframes/`. It runs
+  unattended: anything it cannot settle goes to the reviewer (resolve).
+- Review: `stage: wireframes`, artifacts = the spec `<slug>.wireframe.json`, the PDF, the `png/` folder and
+  `wireframe-manifest.json`; upstream = the approved scoping document.
+- **Orbit:** M1w · G2 (the wireframes PDF, with notification) before the gate; M2w on approve (wireframes approved only);
+  M3 on changes; M5 before re-gating.
+- Gate. Show the page count (frames / scoping pages), the component count from the manifest, which components are
+  drawn in detail and which are slots, and any map page with its mode. Approving here fixes the component list the
+  design system designs.
+
 ## 3 · Design System
 
 The `design-system` skill (v10) is tested and its output is approved as is. **Call it exactly as it is; do not change,
-extend or second-guess its steps** — it reads the whole scoping document and produces a design system the builder
+extend or second-guess its steps** — its own section 0.0 says how the approved wireframes narrow it. It reads
+the whole scoping document and the approved wireframe manifest and produces a design system the builder
 composes from: full component pages (every state and variant), foundations, pattern blueprints, every journey as a
 flow diagram, at most five full screens, and the composition contract with the `#build-plan` and `#style-sets` blocks
 for UnifyApps Headless. Do not ask it to draw more screens, one per page or per persona: the five-screen limit is deliberate.
@@ -380,6 +411,8 @@ Only these session facts are supplied by you:
   - **the BRD** = the approved `02-scoping/scoping-document.docx` (the skill's "BRD" means this document);
     its section 21 brand cues are **evidence with source types**, not a chosen palette; the design-system skill decides the
     palette and theme by its own brand source order (client material → brand guidelines → live product → website).
+  - **the wireframes** = the approved `02b-wireframes/wireframe-manifest.json`, the `png/` frames and the PDF (when
+    `stages.wireframes` is `skipped`, say there are none: the skill then works from the scoping document alone).
   - **where to save:** `<workspace>/03-design-system/`. The deliverable is the design system **HTML file** (the
     living style guide, with the token block and logo kit in it) saved there as
     `<slug>-design-system.html` (one self-contained file, as the skill requires). UnifyApps Headless reads the HTML from this
@@ -397,7 +430,8 @@ Only these session facts are supplied by you:
   - No client logo file anywhere → the skill's stop 2 fallback: the logo kit is built from the UnifyApps logo bundled
     with this plugin (`assets/unifyapps-logo.png`; also `skills/poc-collateral-studio/assets/unifyapps-logo.png`;
     `find ~/.claude/plugins -name unifyapps-logo.png`), labelled as a stand-in; recorded in the port note.
-- Review: `stage: design-system`, upstream = the approved scoping document.
+- Review: `stage: design-system`, upstream = the approved scoping document and the approved wireframes (manifest and
+  `png/` frames).
 - **Orbit:** M1b · G2 (the design system, with notification; stage moves to `4_design_system`) before the gate; M2 ·
   G2 on approve (G2 approved, stage `5_build`); M3 on changes; M5 before re-gating.
 - Gate. On approval also record the look for the AI PM's logo-off test: `python3 "$R/lessons.py" look "<Client>"
@@ -465,6 +499,11 @@ Only these session facts are supplied by you:
     solution. If UnifyApps Headless has already opened a solution, or synced entity manifests whose names belong to another
     client, stop before building: tell the person in one line, log it, and have UnifyApps Headless create the new solution
     instead.
+  - **Wireframes:** `<workspace>/02b-wireframes/` — the approved low-fidelity frames (`png/<page-id>.png`, one per
+    page) and `wireframe-manifest.json`. Each page's regions, their order and what each region holds follow its frame;
+    the components in each region are the manifest's, styled by the design system. A map page (`layout: map` in the
+    spec) is built as the map component in `wireframes/references/map-component.md` (platform-master adds it to the
+    pointers), with the manifest's data contract. Skip this item when `stages.wireframes` is `skipped`.
   - **Design system:** `<workspace>/03-design-system/<slug>-design-system.html`. Tell UnifyApps Headless to quote and follow the
     **Composition contract** section of that file verbatim, and to look every design decision up instead of choosing:
     the pattern and region fillers for each page from the `#build-plan` block (its `rules` for any page not listed),
@@ -548,7 +587,8 @@ Only these session facts are supplied by you:
   2. Check the Orbit session: `node "$R/orbit_signin.mjs" --check`; if expired, remove the autopilot file and have the
      person sign in again (`node "$R/orbit_signin.mjs"`).
   3. Review: `stage: build`, `artifacts: [<preview_url>, 04-build/test-report.md, 04-build/routes.json]`, upstream =
-     the approved scoping document plus the design system. The reviewer runs `build_walk.mjs` and judges storyline,
+     the approved scoping document plus the design system and the approved wireframe frames (`02b-wireframes/png/`,
+     unless `stages.wireframes` is `skipped`). The reviewer runs `build_walk.mjs` and judges storyline,
      fidelity, copy and the reverse trace (ai-pm, stage lenses → build).
   4. **REVISE / BLOCK:** give UnifyApps Headless the findings as numbered fix lines, in the same session, as direct
      changes through `ua-change` with independent fixes in parallel ("Fix exactly these, nothing else: F1 …"); a

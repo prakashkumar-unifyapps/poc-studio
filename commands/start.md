@@ -1,5 +1,5 @@
 ---
-description: Start (or resume) a UnifyApps POC for a client use case — requirement gathering → scoping → design system → UnifyApps Headless build → collaterals
+description: Start (or resume) a UnifyApps POC for a client use case — requirement gathering → scoping → wireframes → design system → UnifyApps Headless build → collaterals
 argument-hint: <client name> | <use case name> | <POC ID>
 ---
 
@@ -10,10 +10,10 @@ The arguments are `<client name> | <use case name> | <POC ID>` (e.g. `Acme | Inv
 
 ## Step 0 — make sure this is the latest POC Studio (always first)
 
-This command was loaded from **POC Studio v1.25.1**. Before anything else, run this check with the Bash tool:
+This command was loaded from **POC Studio v1.26.0**. Before anything else, run this check with the Bash tool:
 
 ```bash
-LOADED="1.25.1"
+LOADED="1.26.0"
 python3 - "$LOADED" <<'PY'
 import json, subprocess, sys, urllib.request
 loaded = sys.argv[1]
@@ -47,7 +47,7 @@ Then act on the last line it printed:
   three commands, then the same `/poc-studio:start` command again:
   `/plugin marketplace update unifyapps-poc`, `/plugin update poc-studio@unifyapps-poc`, `/reload-plugins`.
 - **`UPDATE_CHECK_FAILED`** (no network to GitHub) → say in one line that the update check could not run and that you
-  are continuing on v1.25.1, then carry on.
+  are continuing on v1.26.0, then carry on.
 
 ## Step 1 — verify the POC ID in Orbit (after the update check, before anything else)
 

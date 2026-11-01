@@ -2,7 +2,7 @@
 
 A Claude Code plugin that runs a UnifyApps POC end to end for one client:
 
-**Requirement Gathering → Scoping → Design System → UnifyApps Headless build → Collaterals**
+**Requirement Gathering → Scoping → Wireframes → Design System → UnifyApps Headless build → Collaterals**
 
 with a shared **Research** skill any stage can call, and an **AI PM** that checks every stage's output and
 answers every clarification question, so the person is only asked to approve (or redirect) at the end of each stage.
@@ -108,6 +108,7 @@ under **Assets**), shows you the file and its links, and asks you to approve it.
 |---|---|---|---|
 | `/poc-studio:requirements <Client> \| <Use case> [\| <POC ID>]` | Requirement Gathering document (`requirements`) | `requirement-gathering` | `/assets/requirements` |
 | `/poc-studio:brd <Client> \| <Use case> [\| <POC ID>]` | BRD / scoping document (`brd`) | `scoping-l1-first` | `/assets/brd` |
+| `/poc-studio:wireframes <Client> \| <Use case> [\| <POC ID>]` | Low-fidelity wireframes: PNG frames, PDF and component manifest (`wireframes`) | `wireframes` | `/assets/wireframes` |
 | `/poc-studio:design <Client> \| <Use case> [\| <POC ID>]` | Design system, HTML (`design_system`) | `design-system` | `/assets/design-system` |
 | `/poc-studio:app <Client> \| <Use case> [\| <POC ID>]` | The app, saved as its preview link (`app`) | Stage 4: `ua:setup`, `platform-master`, `ua:plan` (Zen) | `/assets/app` |
 | `/poc-studio:collaterals <Client> \| <Use case> \| <App preview link> [\| <POC ID>]` | Demo script, deck, video — you choose any one, two or all three (`demo_script`, `deck`, `video`) | `poc-collateral-studio` | `/assets/demo-script`, `/assets/deck`, `/assets/video` |
@@ -121,7 +122,8 @@ every command: when it is given and found in Orbit, the row shows a POC chip; a 
 |---|---|---|
 | requirements | Client · Use case · Slack and Google Drive connectors | Client website · Gmail and Calendar connectors |
 | brd | Client · Use case · At least one input: an RG document, meeting notes, an email, client files, or a Slack or Drive link | Client website |
-| design | Client · Use case · A BRD or scoping document · Client website ("derive it" is fine) | Client logo · Brand guidelines |
+| wireframes | Client · Use case · A BRD or scoping document | — |
+| design | Client · Use case · A BRD or scoping document · Client website ("derive it" is fine) | Wireframes (from this folder) · Client logo · Brand guidelines |
 | app | Client · Use case · A BRD or scoping document · UnifyApps Headless installed and this folder set up (`/ua:setup`) · The collateral tools (for the browser check before publish) and an Orbit sign-in · Not a folder whose setup belongs to a running POC (else it asks first) | A design system HTML (else UnifyApps Headless's default look) |
 | collaterals | Client · Use case · Which collaterals (always asked, unless the command already says which, e.g. `deck only`) · The app's **preview link** · Orbit sign-in · The collateral tools | A BRD or scoping document (recommended) · An RG document · The audience |
 
@@ -148,7 +150,8 @@ the `poc-studio:` prefix.)
 | 0 | Setup: connector check (Slack and Google Drive required), installs the tools later stages need, workspace | `poc-orchestrator` | `state.json`, `context-log.md` |
 | 1 | Requirement Gathering | `requirement-gathering` | `01-requirement-gathering/Requirement Gathering - <Client> - <Use case>.docx`, `files/` |
 | 2 | Scoping (build plan) | `scoping-l1-first` | `02-scoping/scoping-document.docx` |
-| 3 | Design System | `design-system` | `03-design-system/<client-slug>-<usecase-slug>-design-system.html` |
+| 2b | Wireframes (Plan phase, between the BRD and the design system): one low-fidelity frame per page, generic regions as named component slots, map pages per the map reference; the manifest is the design system's component list | `wireframes` | `02b-wireframes/<slug>-wireframes.pdf`, `png/`, `wireframe-manifest.json` |
+| 3 | Design System (only the wireframes' components, plus the baseline: sign-in, empty/error/loading states, toast, confirm) | `design-system` | `03-design-system/<client-slug>-<usecase-slug>-design-system.html` |
 | 4 | Build in UnifyApps Headless on Orbit: planned in Zen mode with you answering its questions; `platform-master` adds best-practice pointers for the use case and reviews and corrects the plan before you approve it; built and tested by parallel builder agents, fixed, then walked in a browser by the AI PM (Stage 4b) before it is published. An asset UnifyApps Headless cannot build is built by `platform-master` over the API in the browser (you sign in) | `/ua:setup`, `platform-master`, `/ua:plan` (Zen) | the app on https://orbit.uat.unifyapps.com/, `04-build/build-summary.md`, `zen-decisions.md`, `test-report.md` |
 | 5 | Collaterals (UnifyApps template) | `poc-collateral-studio` | `05-collaterals/<slug>-collateral/out/`: demo script, demo video, deck (PPT) |
 
@@ -170,7 +173,7 @@ Research answers are saved in `research/`, reviewer verdicts in `reviews/`.
 .claude-plugin/plugin.json, marketplace.json
 commands/start.md                  /poc-studio:start
 commands/feedback.md               /poc-studio:feedback
-commands/requirements.md, brd.md, design.md, app.md, collaterals.md
+commands/requirements.md, brd.md, wireframes.md, design.md, app.md, collaterals.md
                                    /poc-studio:<asset> — make one asset on its own
 agents/ai-pm.md                    the AI PM, run as an independent subagent
 hooks/                             route questions to the reviewer while a stage runs
@@ -180,6 +183,8 @@ skills/requirement-gathering/
 skills/research/                   (+ references/calling-research.md, source-guide.md)
 skills/orbit-writeback/            Orbit · POC Studio write-back at each gate (+ orbit-spec.md)
 skills/scoping-l1-first/
+skills/wireframes/                 low-fidelity wireframes from the BRD: render.py (PNG + PDF + manifest, no browser),
+                                   coverage.py (against the BRD), references/: spec format, example, map component
 skills/design-system/              v10 (component kit + composition contract, max 5 screens; UnifyApps stand-in logo)
 skills/asset-run/                  one asset end to end: prerequisites, stage, AI PM, one-off Orbit row, approval
 skills/platform-master/            UnifyApps platform expert for Stage 4: pointers, Zen plan review, browser fallback

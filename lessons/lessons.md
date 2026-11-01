@@ -67,7 +67,7 @@ with the team's history instead of from zero.
 - added: 2026-10-30
 
 ### L-011 · design-system · must-haves dropped
-- check: Every L1 feature ID and CMP ID from the scoping document maps to an inventory row in the design system.
+- check: Every L1 feature ID and CMP ID from the scoping document maps to an inventory row in the design system (with approved wireframes: every manifest component has a component page, design-system 0.0).
 - why: Pentland's material compare, detail pane and docked copilot were L1 and were dropped.
 - origin: design-system defect register v5
 - added: 2026-10-30

@@ -61,8 +61,9 @@ never return `INVALID_REQUEST` for their absence. Use general context about the 
 | `requirement-gathering` | requirements | the client's own files and messages | `01-requirement-gathering/Requirement Gathering - <Client> - <Use case>.docx` |
 | `research` | research | the question the calling stage sent | the research answer |
 | `scoping` | plan (Part A) + spec completeness (Part B) | the approved Requirement Gathering Document | `02-scoping/scoping-document.docx` |
-| `design-system` | design | the approved scoping document | `03-design-system/*.html` (style guide, tokens, logo kit) |
-| `build` | build (v1.0: review at Stage 4b, after UnifyApps Headless's own parallel testing, before publish) + resolve for UnifyApps Headless's questions (only `/ua:setup`'s and those asked after the person approves the Zen plan; Zen planning and `CONFIRM_REQUIRED` are the person's) | the approved scoping document + design system | the app at `app.preview_url`, walked with `scripts/build_walk.mjs`; `04-build/test-report.md` |
+| `wireframes` | wireframes | the approved scoping document | `02b-wireframes/*.pdf`, `png/`, `wireframe-manifest.json` |
+| `design-system` | design | the approved scoping document + the approved wireframes (manifest and `png/` frames) | `03-design-system/*.html` (style guide, tokens, logo kit) |
+| `build` | build (v1.0: review at Stage 4b, after UnifyApps Headless's own parallel testing, before publish) + resolve for UnifyApps Headless's questions (only `/ua:setup`'s and those asked after the person approves the Zen plan; Zen planning and `CONFIRM_REQUIRED` are the person's) | the approved scoping document + design system + the approved wireframe frames | the app at `app.preview_url`, walked with `scripts/build_walk.mjs`; `04-build/test-report.md` |
 | `collaterals` | deliverable | the approved scoping document + the built app | `05-collaterals/**/out/*` |
 
 - **Use case focus:** each workspace is one client **and one use case** (in `state.json` and the context log). In every
@@ -83,7 +84,11 @@ never return `INVALID_REQUEST` for their absence. Use general context about the 
   where "high-level, not configuration-level" applies. Review **Part B** (sections 10–23 and the Appendix) as a build
   spec: it is *meant* to be configuration-level, so detail there is never a finding; check only that it is complete,
   consistent with Part A, and traces to the L1 features.
-- **Design system:** the design-system skill (v10) is tested and its output format is approved as is. Review the single
+- **Wireframes:** low fidelity is the point: greys, one font, slots that only name a component are correct, never a
+  finding. Check them against the scoping document with `wireframes/scripts/coverage.py` and the `wireframes` lens.
+- **Design system:** with approved wireframes, its component pages are exactly the manifest's components plus the
+  baseline (design-system 0.0): a missing manifest component is a finding, and so is a component or proposal that is
+  in neither (style-set alternatives within the rule-1 families and a signature component's second layout are not). The design-system skill (v10) is tested and its output format is approved as is. Review the single
   HTML file against the skill's own finished-piece list (10 items: full component pages with every state and coded
   variant, a blueprint per chosen pattern, at most five full screens; every L1 feature and CMP ID in the page
   inventory; every journey as a flow diagram with the document's exact wording; signature components in depth; agents
@@ -373,10 +378,12 @@ against real gate feedback over time.
 
 ## Checklists by stage kind (mechanical, start here)
 
-**v1.0:** the checklists below are the floor. For requirement-gathering, scoping, design-system, build and collaterals,
+**v1.0:** the checklists below are the floor. For requirement-gathering, scoping, wireframes, design-system, build and collaterals,
 run that stage's lens in `references/stage-lenses.md` on top: re-run first, then judge. Scripts:
 - scoping: `python3 scripts/scope_metrics.py <docx>` (sizing, L1 share, §1 opening, slop, unsourced numbers, primary
   persona, storyline) after the stage's own `check_docx.py`;
+- wireframes: `python3 "$W/coverage.py" <scoping docx> <manifest>` and a re-render of the spec with `"$W/render.py"`
+  (`W` = the request's `scripts.wireframes`, or `find ~/.claude/plugins -path '*wireframes/scripts/render.py'`);
 - design-system: `scripts/render_check.js` in a browser, light and dark, at 1280×800, 1280×680 and 375×812;
 - build: `node scripts/build_walk.mjs --url <preview_url> --storage <orbit session> --routes <routes.json> --out <workspace>/reviews/build-walk-<n>`;
 - every stage: the slop phrases in `scripts/slop-phrases.json`.
@@ -397,6 +404,8 @@ finding or a decision** (scored under R3).
   versus simple model calls are used, with a reason; a **trace table** from every stated ask and input requirement
   to scope, with each cut listed and its approver; one story chain; a data plan (one user across everything); the
   audience's vocabulary; high-level, not configuration-level.
+- **wireframes:** the `wireframes` lens in `references/stage-lenses.md` is the whole checklist (none of the design list
+  below applies: greys, one font and no brand are the point).
 - **design:** the design-system skill's finished-piece list (v10, 10 items) is the checklist; tokens only; every
   state; AI output shown as a reason plus one action; small-text and icon contrast; whose design system is
   used, and approval if it overrides a stated ask; reference research present.
@@ -404,7 +413,7 @@ finding or a decision** (scored under R3).
   is clean (no layout defects, raw values, unexplained disabled buttons, side stripes, console errors, failed
   requests); every storyline step shows the right record in the right state; counts reconcile (badges and KPI tiles
   equal their pages); no raw IDs; list and detail show one status; copy matches behaviour and the glossary; each
-  page matches its `#build-plan` pattern and the drawn screens; nothing visible that no L1 feature asked for;
+  page matches its `#build-plan` pattern, the drawn screens and its approved wireframe frame (regions and order); nothing visible that no L1 feature asked for;
   anything `test-report.md` marks pass that the walk shows broken is blocking R9.
 - **deliverable:** the problem, the solution and the impact in numbers; the script fits the time slot, with time
   for questions; the same user and data as the product; a fallback for each live step; files open for everyone who
