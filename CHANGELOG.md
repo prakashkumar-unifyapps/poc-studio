@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.25.1
+- Removed `/poc-studio:research-report`. Research is not a stage of the POC journey, so it is no longer made as a one-off asset: the command, its `asset-run` row and section, the one-off Orbit `research` document type and its README rows are gone. The one-asset commands are now `requirements`, `brd`, `design`, `app` and `collaterals`. The `research` skill stays: the stages and the AI PM still call it for outside facts. The full pipeline (`/poc-studio:start`) is unchanged.
+
 ## 1.25.0
 - **Make one asset**: six new commands — `/poc-studio:requirements`, `research-report`, `brd`, `design`, `app`, `collaterals` — each makes one asset without a POC and without the other stages. Prerequisites are collected in the chat first (arguments → an existing client folder → one question); then the existing stage skill runs unattended, the AI PM reviews it, and the new `asset-run` skill writes it to Orbit as a one-off document (`origin: standalone`, shown in POC Build Loop under Assets), versioned from Orbit on every re-run or change, and asks for approval. Collaterals always ask which to make (demo script, deck, video — any of them). A one-off run never changes a pipeline run's files, state or Orbit rows.
 - orbit-writeback: "One-off documents" section and a shared Preview link rule; pipeline Document rows now also send `origin: pipeline`, `client_name` and `use_case`, and app documents save the preview link (never the matrix URL). `/poc-studio:feedback` in a one-off workspace asks for a POC ID or writes nothing.

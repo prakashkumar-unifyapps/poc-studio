@@ -107,7 +107,6 @@ under **Assets**), shows you the file and its links, and asks you to approve it.
 | Command | Makes (Orbit type) | Runs | Assets page |
 |---|---|---|---|
 | `/poc-studio:requirements <Client> \| <Use case> [\| <POC ID>]` | Requirement Gathering document (`requirements`) | `requirement-gathering` | `/assets/requirements` |
-| `/poc-studio:research-report <Client> \| <Use case or topic> \| <Question> [\| <POC ID>]` | Research report, Word (`research`) | `research` | `/assets/research` |
 | `/poc-studio:brd <Client> \| <Use case> [\| <POC ID>]` | BRD / scoping document (`brd`) | `scoping-l1-first` | `/assets/brd` |
 | `/poc-studio:design <Client> \| <Use case> [\| <POC ID>]` | Design system, HTML (`design_system`) | `design-system` | `/assets/design-system` |
 | `/poc-studio:app <Client> \| <Use case> [\| <POC ID>]` | The app, saved as its preview link (`app`) | Stage 4: `ua:setup`, `platform-master`, `ua:plan` (Zen) | `/assets/app` |
@@ -121,7 +120,6 @@ every command: when it is given and found in Orbit, the row shows a POC chip; a 
 | Command | Required | Optional |
 |---|---|---|
 | requirements | Client · Use case · Slack and Google Drive connectors | Client website · Gmail and Calendar connectors |
-| research-report | Client · Topic · The question(s) | Purpose (internal check, working draft or client-facing) · Files to read first |
 | brd | Client · Use case · At least one input: an RG document, meeting notes, an email, client files, or a Slack or Drive link | Client website |
 | design | Client · Use case · A BRD or scoping document · Client website ("derive it" is fine) | Client logo · Brand guidelines |
 | app | Client · Use case · A BRD or scoping document · UnifyApps Headless installed and this folder set up (`/ua:setup`) · The collateral tools (for the browser check before publish) and an Orbit sign-in · Not a folder whose setup belongs to a running POC (else it asks first) | A design system HTML (else UnifyApps Headless's default look) |
@@ -172,7 +170,7 @@ Research answers are saved in `research/`, reviewer verdicts in `reviews/`.
 .claude-plugin/plugin.json, marketplace.json
 commands/start.md                  /poc-studio:start
 commands/feedback.md               /poc-studio:feedback
-commands/requirements.md, research-report.md, brd.md, design.md, app.md, collaterals.md
+commands/requirements.md, brd.md, design.md, app.md, collaterals.md
                                    /poc-studio:<asset> — make one asset on its own
 agents/ai-pm.md                    the AI PM, run as an independent subagent
 hooks/                             route questions to the reviewer while a stage runs
