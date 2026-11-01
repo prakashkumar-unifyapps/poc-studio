@@ -104,6 +104,11 @@ AI PM review it, saves it in the client folder, writes it to Orbit as a **one-of
 under **Assets**), shows you the file and its links, and asks you to approve it. Running the same command again later
 (or asking for changes) saves a new version; the older one shows as superseded.
 
+**One OK to the next asset.** When an asset is approved, the question also offers **Approve and make <next asset>**
+(Requirements → BRD → Wireframes → Design system → App → Collaterals). Choosing it starts the next one-off asset at
+once, using the asset just approved as its input; only what is still missing is asked. Each asset stays a one-off
+under Assets: a chain of one-offs never becomes or moves a POC (that is only `/poc-studio:start`).
+
 | Command | Makes (Orbit type) | Runs | Assets page |
 |---|---|---|---|
 | `/poc-studio:requirements <Client> \| <Use case> [\| <POC ID>]` | Requirement Gathering document (`requirements`) | `requirement-gathering` | `/assets/requirements` |

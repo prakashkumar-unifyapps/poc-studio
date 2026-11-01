@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.27.0
+- **One OK to the next asset.** A one-off asset's approval question now also offers **Approve and make <next asset>** (Requirements → BRD → Wireframes → Design system → App → Collaterals). It approves the asset and starts the next one-off at once, with the asset just approved as its input (no re-upload, no "use it?" offer); only what is still missing is asked. The question repeats at each approval, so a person can go asset by asset with one OK each, or stop with Approve.
+- The chain stays one-off: each asset is its own Assets row (versioned as before) and never starts, joins or moves a POC run; the full loop is only `/poc-studio:start`.
+
 ## 1.26.0
 - **New stage 2b · Wireframes** in the Plan phase, between the BRD and the design system (skill `wireframes`). From the approved scoping document it writes a short JSON layout spec; a bundled script (`render.py`, Pillow only, no browser, fonts included) draws one low-fidelity grey frame per page at the persona's width, a PDF of all frames, and `wireframe-manifest.json`: every component with its pages, CMP IDs, variants and states. Generic regions are **slots** that only name their component; the page's defining parts are drawn in detail with the BRD's real copy. `coverage.py` checks every §11 page and §23 CMP ID against the BRD. It has its own approval step inside G2 (Orbit: a `wireframes` document under Plan, M1w/M2w; no new gate).
 - **Map component reference** (`wireframes/references/map-component.md`), taken from a working build: one shared map, four modes (rings, dots, arcs, radius), full-bleed with floating panels, whole-step fits padded for panels, screen-space health rings, collision-free labels, hover-to-card. Wireframes draw map pages with it, the design system styles it, platform-master adds a `Map:` pointer and checks Zen's plan against it, and the AI PM checks it at 4b. Scoping now gives location records latitude/longitude and seeds real coordinates.

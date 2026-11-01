@@ -9,10 +9,10 @@ The arguments are `<Client> | <Use case> | <App preview link> [| <POC ID>]`. The
 
 ## Step 0 — make sure this is the latest POC Studio (always first)
 
-This command was loaded from **POC Studio v1.26.0**. Before anything else, run this check with the Bash tool:
+This command was loaded from **POC Studio v1.27.0**. Before anything else, run this check with the Bash tool:
 
 ```bash
-LOADED="1.26.0"
+LOADED="1.27.0"
 python3 - "$LOADED" <<'PY'
 import json, subprocess, sys, urllib.request
 loaded = sys.argv[1]
@@ -46,13 +46,13 @@ Then act on the last line it printed:
   three commands, then the same `/poc-studio:collaterals` command again:
   `/plugin marketplace update unifyapps-poc`, `/plugin update poc-studio@unifyapps-poc`, `/reload-plugins`.
 - **`UPDATE_CHECK_FAILED`** (no network to GitHub) → say in one line that the update check could not run and that you
-  are continuing on v1.26.0, then carry on.
+  are continuing on v1.27.0, then carry on.
 
 ## Step 1 — prerequisites (asked in the chat, before anything runs)
 
 Load the `asset-run` skill (Skill tool: `poc-studio:asset-run`) and follow its **1 · Prerequisites** for the asset
 **`collaterals`**: take each prerequisite from the arguments, then from an existing workspace for this client and use case
-(offer what you find in one line), then ask for everything still missing in **one** question. Never ask for a password.
+(offer what you find in one line; in a chain from "Approve and make <next asset>", the asset just approved is used without an offer), then ask for everything still missing in **one** question. Never ask for a password.
 
 - **Required:** Client name · Use case · which collaterals (always asked — demo script, deck, video: any one, two or all three — unless the command already says which, e.g. `deck only` after the preview link) · the app's preview link (a published or builder link is turned into the preview link) · a valid Orbit sign-in · the collateral tools for the ones chosen.
 - **Optional** (asked once, in the same question; the run goes on without it): A BRD or scoping document (strongly recommended: it drives the story and personas) · a Requirement Gathering document · the audience (business, technical or mixed).
