@@ -136,7 +136,7 @@ discovered input, `<source>-<short name>` (`slack-…`, `drive-…`, `gmail-…`
   "created_by": "<POC owner name>", "saved_at": 1792280000000 }
 ```
 
-- `type`: slack · requirements · research · brd · design_system · app · demo_script · deck · video
+- `type`: slack · requirements · brd · design_system · app · demo_script · deck · video
 - **Every Document create in the pipeline** sends `"origin": "pipeline"`, `"client_name"` and `"use_case"` (from the
   POC row read in Setup). One-off documents (`/poc-studio:<asset>` commands) are written by "One-off documents" below.
 - **App documents** (`type app`) always carry the app's **preview link** as `file_link`, by the "Preview link rule"
@@ -513,7 +513,7 @@ it needs a user to be created before it opens.
 
 ## One-off documents (`/poc-studio:<asset>` commands)
 
-The standalone commands (`/poc-studio:requirements`, `research-report`, `brd`, `design`, `app`, `collaterals`, run by
+The standalone commands (`/poc-studio:requirements`, `brd`, `design`, `app`, `collaterals`, run by
 the `asset-run` skill) write **one-off documents**: rows in `orbit_studio_document` with `origin: "standalone"`, shown in
 POC Build Loop under **Assets** (`https://poc-build-loop-orbit.tensor-uat.unifyapps.com/assets/<type-slug>`). This
 section is the only place they are written from; `asset-run` calls it.
@@ -528,10 +528,10 @@ written as input rows either; only the Requirement Gathering document itself is 
 { "document_id": "SA-<client-slug>__<type-slug>__<usecase-slug>__v<N>",
   "origin": "standalone",
   "client_name": "<Client, as typed>",
-  "use_case": "<Use case, as typed (the topic for research)>",
+  "use_case": "<Use case, as typed>",
   "poc": "<POC ID, only if one was given and verified; otherwise leave the key out>",
   "name": "<readable name, e.g. 'Acme — Invoice matching BRD'>",
-  "type": "<requirements | research | brd | design_system | app | demo_script | deck | video>",
+  "type": "<requirements | brd | design_system | app | demo_script | deck | video>",
   "stage": "<from the table below>",
   "gate_pack": "none",
   "version": <N>,
@@ -551,7 +551,6 @@ Slugs are lower case, with every run of non-letters/digits replaced by `-` and n
 | type | type-slug (id and app URL) | stage | file_kind | file_link |
 |---|---|---|---|---|
 | requirements | `requirements` | `2_research_assess` | docx | `upload_public_file` URL |
-| research | `research` | `2_research_assess` | docx | `upload_public_file` URL |
 | brd | `brd` | `3_scope` | docx | `upload_public_file` URL |
 | design_system | `design-system` | `4_design_system` | html | `upload_public_file` URL (`text/html`; the same 20 MB rule as M1b) |
 | app | `app` | `6_finalize` | link | the app's **preview link** (Preview link rule), never a matrix link |

@@ -1,6 +1,6 @@
 ---
 name: asset-run
-description: Makes ONE POC Studio asset on its own — a Requirement Gathering document, a research report, a BRD (scoping document), a design system, an app, or the collaterals (demo script, deck, video; any of them) — without a POC and without running the other stages. Collects that asset's prerequisites in the chat first, then runs the existing stage skill unchanged and unattended, has the AI PM review it, writes it to Orbit as a one-off document (a new version every time), shows it in the chat and asks for approval. Loaded by the /poc-studio:requirements, research-report, brd, design, app and collaterals commands; not for the full pipeline (/poc-studio:start).
+description: Makes ONE POC Studio asset on its own — a Requirement Gathering document, a BRD (scoping document), a design system, an app, or the collaterals (demo script, deck, video; any of them) — without a POC and without running the other stages. Collects that asset's prerequisites in the chat first, then runs the existing stage skill unchanged and unattended, has the AI PM review it, writes it to Orbit as a one-off document (a new version every time), shows it in the chat and asks for approval. Loaded by the /poc-studio:requirements, brd, design, app and collaterals commands; not for the full pipeline (/poc-studio:start).
 ---
 
 # One asset, end to end (`asset-run`)
@@ -12,7 +12,6 @@ The full pipeline (`/poc-studio:start`, `poc-orchestrator`) is not involved and 
 | Asset | Command | Stage skill | AI PM `stage` | Orbit `type` (one row each) | Output folder |
 |---|---|---|---|---|---|
 | `requirements` | `/poc-studio:requirements` | `requirement-gathering` | `requirement-gathering` | `requirements` | `01-requirement-gathering/` |
-| `research-report` | `/poc-studio:research-report` | `research` | `research` | `research` | `research/` |
 | `brd` | `/poc-studio:brd` | `scoping-l1-first` | `scoping` | `brd` | `02-scoping/` |
 | `design` | `/poc-studio:design` | `design-system` | `design-system` | `design_system` | `03-design-system/` |
 | `app` | `/poc-studio:app` | `ua:setup`, `platform-master`, `ua:plan` (Zen) — Stage 4 | `build` (Stage 4b) | `app` | `04-build/` |
@@ -62,7 +61,6 @@ on without it):
 | Asset | Required | Optional | When something required is missing |
 |---|---|---|---|
 | requirements | Client name · Use case · Slack and Google Drive connectors (their tools are in the session) | Client website · Gmail and Calendar connectors | Connectors: stop and ask the person to connect them (in Claude Code: `/mcp`, or as a claude.ai connector), then check again, as Setup does |
-| research-report | Client name · Topic · The question(s) | Purpose: internal check, working draft or client-facing (sets the depth) · Files to read first | Ask |
 | brd | Client name · Use case · **At least one input**: an RG document, meeting notes, an email, client files, or a Slack or Drive link | Client website | Offer two options: "Run `/poc-studio:requirements` first" or "Paste or attach what you have" |
 | design | Client name · Use case · **BRD or scoping document** (.docx or PDF) · Client website (ask once; accept "derive it", then the skill derives it) | Client logo file · Brand guidelines | Offer "Run `/poc-studio:brd` first" or "Attach a BRD" |
 | app | Client name · Use case · **BRD or scoping document** · The UnifyApps Headless plugin (`ua`) installed and this folder set up on `orbit.uat.unifyapps.com` (`/ua:setup`) · The collateral tools (Playwright, for the Stage 4b walk) and a valid Orbit sign-in, as for collaterals below · Not a folder whose UnifyApps Headless setup belongs to a pipeline run (below) | Design system HTML (without one, say the build uses UnifyApps Headless's default look, and offer `/poc-studio:design` first) | Plugin or setup missing: tell the person what to install or run, then check again |
@@ -111,7 +109,7 @@ once. Keep their email if the profile gives it. Save both in `state.json` → `s
 ## 2 · Workspace and run state
 
 1. Use the pipeline's tree: `<cwd>/<client-slug>/<usecase-slug>/` (slugs: lower case, every run of non-letters/digits
-   → `-`, no `-` at the start or end: `[Test] Acme` → `test-acme`). A research report uses the topic as the use case (`<topic-slug>`). Create the folders the asset needs
+   → `-`, no `-` at the start or end: `[Test] Acme` → `test-acme`). Create the folders the asset needs
    (`_inputs/`, `01-requirement-gathering/files/`, `02-scoping/`, `03-design-system/`, `04-build/`, `05-collaterals/`,
    `research/`, `reviews/`) and `context-log.md` if it does not exist (first line: client, use case, "one-off runs", date).
 2. **Protect what is already there.** Before a stage writes a file that already exists, copy the existing file to
@@ -155,11 +153,6 @@ sections name** (M1–M6, M4a, M4b, Reconcile, the G4 upload): a one-off writes 
 - **requirements** — orchestrator § 1: `requirement-gathering` with the client name, the use case and
   `<workspace>/01-requirement-gathering/`. The skill's own last step ("ask whether to proceed") is replaced by § 4–6
   here.
-- **research-report** — call `research` with the question(s), the purpose, the topic and the context (the client name,
-  files to read first). Save the answer as `research/<topic-slug>-report.md`, then render
-  `research/Research - <Client> - <Topic>.docx` from it with the title "Research — <Client> — <Topic>": `pandoc
-  "<md>" -o "<docx>" --metadata title="Research — <Client> — <Topic>"`, or python-docx if pandoc is missing. The `.docx`
-  is what goes to Orbit.
 - **brd** — orchestrator § 2: `scoping-l1-first` with the use case; **input 1** = what was collected (the RG
   document, or the notes, emails and files in `_inputs/`); **input 2** = every client file collected (`_inputs/` and,
   if an RG run made them, `01-requirement-gathering/files/`); output `<workspace>/02-scoping/scoping-document.docx`
@@ -206,7 +199,7 @@ for a change request; `prior_verdict` is always given explicitly from round 2 on
 another run's). `work_id` = the POC ID if given, else
 `SA-<client-slug>__<usecase-slug>`; `stage` from the table above; `artifacts` = the asset's output(s); `upstream` = the
 input the asset was made from (the RG document for a BRD, the BRD for a design system or app, the BRD and the app for
-collaterals; none for requirements and research beyond the question); `owner_profile` as in § 2; for collaterals,
+collaterals; none for requirements); `owner_profile` as in § 2; for collaterals,
 `known: ["collaterals chosen: <list>; the others were not requested and are not missing"]`. Handle the verdict
 exactly as the orchestrator's table does: REVISE with a response file (at most 2 REVISE rounds), BLOCK, the round-3
 ruling, ASK_HUMAN, research requests. For the app, this is the Stage 4b walk inside § 3.
