@@ -136,6 +136,42 @@ build because `research` failed.
 
 # PHASE 0 · Read the BRD, choose the system
 
+## 0.0 · Approved wireframes (POC Studio) — when given, they set what is built
+
+In POC Studio the Plan phase runs Scoping → **Wireframes** → Design System. When the call includes the approved
+wireframes (`wireframe-manifest.json`, the `png/` frames and the PDF), the person has already approved what is on
+every page and where. Read all three before 0.1, then:
+
+1. **The manifest is the component inventory.** Write a component page for every component in the manifest and for
+   the baseline (2), and no other. On each: the forms the manifest lists under `variants` (the pages need them, so
+   they must exist), the states it lists plus the universal state rule, and its `features` (bulk select, a status
+   column, a map mode). The style-set alternatives of "Variants and the style set" (rule-1 families only, at most
+   three per family counting the manifest's forms) and a signature component's second layout (0.8) are still drawn.
+   Nothing else: no `Proposed` views or components, and no view from the reserve the manifest does not name. A component the scoping document names
+   but the manifest does not is not built (the wireframes were approved without it); if it is clearly needed, say so
+   in the port note for the next wireframe change, and do not add it.
+2. **The baseline is always built**, whether or not a frame shows it: the floor in 0.1 (the shell parts the frames
+   use, sign-in with forgot and reset password, the four statuses in the domain's words, empty, no-results, loading,
+   error and no-access states with wording, a toast with undo, the confirmation modal, every input state, light and
+   dark), the agent drawer with its launcher for every agent (0.9), and the kit atoms of "The component inventory" in
+   REFERENCE (buttons, inputs, status tags, badges and the rest).
+3. **The frames are the layouts.** Each page's pattern, region order and region fillers in `#build-plan` come from its
+   frame (same page ID). Where a frame shows a slot, the region filler is that slot's component. A pattern blueprint
+   is drawn only for a pattern no frame shows. Never re-decide a layout a frame fixes.
+4. **The five full screens are frames at high fidelity:** pick up to five frames (the main personas' first screens,
+   the demo storyline's key moments, a map page if there is one) and draw each with its frame's regions in the same
+   order, now in the client's brand with real content.
+5. **Maps.** A manifest component with a map `data_contract` gets one map component page that follows the wireframes
+   skill's `references/map-component.md`: only the modes the manifest lists; ring, dot, label, site card and route or
+   radius anatomy with every state; the legend pill; the floating controls; and the tile tint for light and dark as a
+   token-driven filter.
+6. **Check by script before hand-over:** every manifest `component` has a component page (`data-component` values),
+   every frame's page ID (without its letter suffix: `PG-03b` is page `PG-03`) is in `#build-plan`, and no component
+   page exists that is neither in the manifest nor in the baseline.
+
+Without wireframes (a run that skipped them, or a design system made without any), 0.1–0.9 work from the scoping
+document alone, exactly as written.
+
 **In the automated flow the BRD is a scoping document** — 80 to 130 pages, most of it data model,
 workflows, business rules, agent prompts, seed data and sources. Read it as the BRD throughout this
 file. Most of it is not visual, and that is exactly why it has to be read whole: the visual facts are
@@ -200,13 +236,15 @@ the usual template; find the equivalent if they differ):
 | Non-functional notes, seed data (§18–§19) | DATA VOLUMES, sample content, hero records the specimens use |
 | Demo storyline (§20) | which flows and screens carry the demo; the order the style guide follows |
 | Hand-off to the design system (§21) | BRAND INPUTS, vibe, custom components, key states, interactions, layouts |
-| Component inventory (§23) | signature-component candidates (0.8); every CMP ID gets a specimen |
+| Component inventory (§23) | signature-component candidates (0.8); every CMP ID gets a specimen (with wireframes: every manifest component; 0.0) |
 
-**Every must-have (L1) feature ID and every CMP ID maps to at least one inventory row (0.6).** Nothing
+**Every must-have (L1) feature ID and every CMP ID maps to at least one inventory row (0.6)** (with wireframes, the
+manifest is the inventory and its coverage was checked at the wireframe stage: 0.0). Nothing
 the document builds now is moved to "future scope" by this skill. Where the document itself marks a
 feature future scope, it stays dormant.
 
-**Go beyond the document, inside its fences.** The scoping document is the floor, not the ceiling.
+**Go beyond the document, inside its fences** (only without wireframes; with them, the approved frames are the
+scope and nothing is proposed: 0.0). The scoping document is the floor, not the ceiling.
 After the read, ask: what would make each persona's main journey faster, clearer or more convincing
 in a demo? Add those as **proposals** — a view, a variant, a state, an interaction — drawn and labelled
 `Proposed` on the page, each with the persona and journey it serves. A proposal never contradicts the
@@ -341,15 +379,17 @@ limit.
 
 **Write a page inventory, not a page gallery.** One row per page, overlay and screen the brief names
 (sign-in and recovery, file viewer, confirmations, and every agent output from 0.3), recording what the
-builder needs to **compose** it. Every L1 feature ID and component ID maps to at least one row.
+builder needs to **compose** it. Every L1 feature ID and component ID maps to at least one row (with wireframes:
+every manifest component and every frame's page; 0.0).
 
 | # | Page | BRD ref | Data shape (0.3) | Persona (0.4) | Fitting patterns | Chosen | Drawn? |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 1 | Case queue | §8.1 | many records, flat | agent, dense | P1 · P2 | P2 | screen 1 of 5 |
 | 2 | Case record | §8.3 | one record, deep | agent, dense | P3 · P2 | P3 | screen 2 of 5 |
-| 3 | Hub overview | §8.4 | metrics + map | supervisor | P5 · P6 | P5 | blueprint, composed |
+| 3 | Hub overview | §8.4 | metrics + map | supervisor | P5 · P6 | P6 | blueprint, composed |
 
-**The page draws five things. Only the fifth is full screens:**
+**The page draws five things. Only the fifth is full screens** (with approved wireframes, 0.0 decides which
+components, the frames are the layouts, and the five screens are frames at high fidelity):
 
 1. **Component pages** — every component the inventory needs, documented to the component-page spec
    (REFERENCE): anatomy, labelled variants, the full state matrix, micro-interactions, sizes, content
@@ -407,7 +447,7 @@ DATA       the record and field that changed
   left, an edge fade and a "Scroll →" hint. No card may end cut off at the frame edge.
 - **Where the document gives the step but not the screen state, derive it** and mark it `[DERIVED]`.
   Where the document gives no journey for a persona, write that persona's first session and mark it
-  `Proposed`.
+  `Proposed` (with wireframes, draw it from that persona's frames instead).
 - **Default interactions are not repeated per node.** Hover and focus on everything clickable, a
   loading state between action and response, an empty first run and an undo after a reversible action
   are stated once, as the rule for every journey, in the composition contract.
@@ -442,7 +482,8 @@ with the reason.
 7. **AI behaviour** — where the AI marker sits, how confidence shows, how a person accepts, edits or
    rejects, what an AI failure looks like.
 8. **Variants** — at least two layouts for different contexts (a full view and a compact card; a
-   desktop panel and a phone sheet), so the builder has the right one for each page.
+   desktop panel and a phone sheet), so the builder has the right one for each page (with wireframes,
+   the forms the manifest lists for it come first; 0.0).
 
 Document each signature component on its own full component page, drawn large, with real seed data, in its states and variants. **A signature
 component drawn once, at one size, in its happy state, is a generic component with a new name.**
@@ -511,6 +552,7 @@ OPTIONAL   brand swatch           a hex, or an image to sample
            logo                   an SVG or PNG file
            brand typeface         the name, if you already know it
            client design system   a URL or component spec, if they publish one
+           wireframes             POC Studio: the approved wireframe-manifest.json, png/ frames and PDF (0.0)
 ```
 
 **Everything optional is derived if absent. Derive it, record what you derived, keep going.**
@@ -1456,7 +1498,7 @@ the only shape.
 | **P3** | Focus / canvas | **one hero object**, little chrome, docked actions | one record, a document, a photo, a form-led task |
 | **P4** | Board | **columns of cards** that move through stages | stages, a process |
 | **P5** | Metric dashboard | a **mixed-width widget grid** (8/4, 6/6, 4/4/4) | aggregates |
-| **P6** | Map | **the map as hero**, list and legend docked | locations |
+| **P6** | Map | **the map is the page**, full bleed; top bar, insight cards, list panel and legend float over it (wireframes `map-component.md`) | locations |
 | **P7** | Feed / timeline | **a chronological stream** as hero | activity, history, a schedule |
 
 The agent drawer overlays any pattern; it is never a page body. In the kit, each pattern declares its
@@ -1563,7 +1605,7 @@ comparison (bar, column, grouped, stacked, bullet, lollipop, radar) · trend (li
 step, slope, sparkline `[kit]`, candlestick) · part-to-whole (donut for at most three parts, treemap,
 sunburst, waffle) · distribution (histogram, box, violin, dot, beeswarm) · relationship (scatter,
 bubble, hexbin) · flow (funnel, waterfall, sankey) · single value (gauge, progress ring, big number with
-delta) · analytics (cohort, retention, control chart, pareto) · geo (choropleth, bubble map, flow map,
+delta) · analytics (cohort, retention, control chart, pareto) · geo (choropleth, bubble map, flow map; a site map is never a dashboard widget: it is a P6 page,
 handed to the map engine). A chart without a unit is decoration; the ramp never cycles.
 
 **Graph (graph engine, layouts force / hierarchy / radial)** — network · tree · org chart · mind map ·
@@ -2041,10 +2083,11 @@ scoring under 4 on distinctiveness or finish is not ready, whatever the checklis
 1. **Components complete, screens few.** Every component the inventory needs has a full component
    page (anatomy, coded variants, the static state matrix, a live specimen, micro-interactions, sizes,
    content rules, accessibility, do and don't). Every hover, focus and press rule has its state class,
-   so the matrix renders without a mouse. Every chosen pattern has a blueprint. **At most five full
-   screens.** Count both with a script.
+   so the matrix renders without a mouse. Every chosen pattern has a blueprint (with wireframes: only
+   patterns no frame shows). **At most five full screens.** Count both with a script. With wireframes,
+   the component pages are exactly the manifest's components plus the baseline (0.0, checked by script).
 2. **Scope and coverage.** Every L1 feature ID and component ID in the document appears in the
-   inventory (checked by script). Nothing the document put out of scope appears; dormant views are listed
+   inventory (checked by script; with wireframes, every manifest component and frame page instead). Nothing the document put out of scope appears; dormant views are listed
    as not built.
 3. **Journeys and signature work.** Every journey is a flow diagram with the document's exact wording
    for refusals and messages (count journeys in the document and diagrams on the page; they match). The
@@ -2142,3 +2185,6 @@ Read only when a rule seems odd; each line names the run that caused it.
   matches the five-screen limit; every research request states its search budget, because the
   `research` skill reads Quick, Standard and Deep as larger counts; no named reviewers in the
   hand-over questions.
+- **v10.1 (POC Studio 1.26)** — approved low-fidelity wireframes come before this skill (0.0): their manifest is the
+  component inventory, their frames are the layouts, nothing is proposed, the baseline is always built. Design
+  systems had grown an open-ended component list; the frames close it.

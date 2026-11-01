@@ -145,8 +145,10 @@ Add all of these to the build request. Each starts the way it goes into the requ
   missed an enum, a primary key, two prompts and an agent's text.*
 - The build should **use the customer's currency and a readable money format** ("10.61bn", not "10609m"), and
   should carry no currency words from another region.
-- The build should **draw real boundaries when a map is needed**: real administrative geometry projected at build
-  time, a ranked list beside it, and click a region to ask the agent. *Bubble maps on an abstract field were rejected
+- The build should **draw real boundaries when a map shows regions** (data by state, district or territory, with no
+  site coordinates): real administrative geometry projected at build time, a ranked list beside it, and click a region
+  to ask the agent. A map of sites (records with latitude and longitude) follows the wireframes skill's
+  `references/map-component.md` instead (the `Map:` pointer). *Bubble maps on an abstract field were rejected
   on sight, three times.*
 - The build should **update any UI text that claims where data comes from** whenever the read path changes. *The
   chat dock still said "reading 22 objects" after the move to the graph.*

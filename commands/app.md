@@ -9,10 +9,10 @@ The arguments are `<Client> | <Use case> [| <POC ID>]`. The POC ID is optional; 
 
 ## Step 0 — make sure this is the latest POC Studio (always first)
 
-This command was loaded from **POC Studio v1.25.1**. Before anything else, run this check with the Bash tool:
+This command was loaded from **POC Studio v1.26.0**. Before anything else, run this check with the Bash tool:
 
 ```bash
-LOADED="1.25.1"
+LOADED="1.26.0"
 python3 - "$LOADED" <<'PY'
 import json, subprocess, sys, urllib.request
 loaded = sys.argv[1]
@@ -46,7 +46,7 @@ Then act on the last line it printed:
   three commands, then the same `/poc-studio:app` command again:
   `/plugin marketplace update unifyapps-poc`, `/plugin update poc-studio@unifyapps-poc`, `/reload-plugins`.
 - **`UPDATE_CHECK_FAILED`** (no network to GitHub) → say in one line that the update check could not run and that you
-  are continuing on v1.25.1, then carry on.
+  are continuing on v1.26.0, then carry on.
 
 ## Step 1 — prerequisites (asked in the chat, before anything runs)
 
@@ -55,7 +55,7 @@ Load the `asset-run` skill (Skill tool: `poc-studio:asset-run`) and follow its *
 (offer what you find in one line), then ask for everything still missing in **one** question. Never ask for a password.
 
 - **Required:** Client name · Use case · a BRD or scoping document · the UnifyApps Headless plugin (`ua`) installed and this folder set up on `orbit.uat.unifyapps.com` (`/ua:setup`) · the collateral tools (Playwright, for the AI PM's browser check before publish) and a valid Orbit sign-in · not a folder whose UnifyApps Headless setup belongs to a pipeline run (if it is, ask once: a separate folder is recommended).
-- **Optional** (asked once, in the same question; the run goes on without it): A design system HTML (without one, say the build uses UnifyApps Headless's default look, and offer `/poc-studio:design` first).
+- **Optional** (asked once, in the same question; the run goes on without it): Approved wireframes (from this folder) · A design system HTML (without one, say the build uses UnifyApps Headless's default look, and offer `/poc-studio:design` first).
 - **If something required is missing:** Plugin or setup missing: tell the person what to install or run, then check again.
 
 If a POC ID was given, verify it as `asset-run` § 1 describes (found → the Orbit row carries it; not found → ask once to

@@ -30,7 +30,7 @@ import json, os, re, sys, glob, shutil, datetime
 HOME = os.path.expanduser(os.environ.get("POC_STUDIO_LESSONS", "~/.local/poc-studio/lessons"))
 SEED = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "lessons")
 TODAY = datetime.date.today().isoformat()
-STAGES = ["requirement-gathering", "scoping", "design-system", "build", "collaterals", "all"]
+STAGES = ["requirement-gathering", "scoping", "wireframes", "design-system", "build", "collaterals", "all"]
 
 def p(*a): return os.path.join(HOME, *a)
 def read(f): return open(f).read() if os.path.exists(f) else ""

@@ -46,6 +46,12 @@ change them.
    - `Pointers:` the pointers from "Pointers for every use case" and from this type's section that apply to this
      scoping document — at most 15, each one line, phrased as what the build should do. Leave out any pointer whose
      subject the scoping document does not contain (no map pointer without a map).
+   - `Map:` only when the approved wireframe manifest (`02b-wireframes/wireframe-manifest.json`) has a map component:
+     "Build every map page with one shared map component as `wireframes/references/map-component.md` describes
+     (plain Leaflet, OpenStreetMap tiles tinted by a CSS filter, full-bleed with floating panels, whole-step fits padded
+     for the panels, own screen-space clustering into health rings, collision-free labels, hover-to-card), in the
+     modes <modes from the manifest>, bound to <the data contract's object and lat/lng fields>". It does not count
+     toward the 15.
 4. Return the pointers. The orchestrator adds them to the build request under **Platform pointers**.
 
 ## 2 · Plan review (inside the Zen planning window, before the person sees the plan)
@@ -59,7 +65,10 @@ before its one question (start / change something / keep for later) is put to th
    An item is an **adjustment** only when it is one of these:
    - it would break or misbehave on the platform (a checklist item it fails);
    - an L1 item of Part B has no task, or a task builds something Part B does not ask for;
-   - a pointer that applies is not reflected in the plan;
+   - a pointer that applies is not reflected in the plan (the `Map:` pointer included: one shared map component, not
+     one map per page, and not a map inside a card);
+   - a page's layout differs from its approved wireframe frame (`02b-wireframes/png/`), or a region holds a component
+     the manifest does not give it;
    - the task graph orders tasks wrongly (an entity built before what it depends on), or chains tasks that could run in
      parallel.
 3. Write `04-build/platform-review.md`: round number, then one line per adjustment —
@@ -70,7 +79,7 @@ before its one question (start / change something / keep for later) is put to th
 5. Return to the orchestrator: the final preview path, and the list of adjustments that were applied (with their why).
    The person then sees the final plan with that list, and gives the one approval.
 
-Never adjust: the scope (L1 only), the design decisions (they come from the design system's composition contract), the
+Never adjust: the scope (L1 only), the page layouts (they come from the approved wireframes), the design decisions (they come from the design system's composition contract), the
 mode, the solution, the builder, the environment, the seed-data policy, or anything the person already answered in the
 planning window (`04-build/zen-decisions.md`).
 

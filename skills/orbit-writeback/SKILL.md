@@ -120,7 +120,7 @@ Call it with:
 | Activity | `ACT-<Date.now()>-<4 random digits>` |
 | Iteration | `IT-<poc_id>-<Date.now()>` |
 
-`slug` is the document type (`requirements`, `brd`, `design-system`, `app`, `demo-script`, `deck`, `video`) or, for a
+`slug` is the document type (`requirements`, `brd`, `wireframes`, `design-system`, `app`, `demo-script`, `deck`, `video`) or, for a
 discovered input, `<source>-<short name>` (`slack-…`, `drive-…`, `gmail-…`, `calendar-…`).
 
 ## The rows
@@ -136,7 +136,7 @@ discovered input, `<source>-<short name>` (`slack-…`, `drive-…`, `gmail-…`
   "created_by": "<POC owner name>", "saved_at": 1792280000000 }
 ```
 
-- `type`: slack · requirements · brd · design_system · app · demo_script · deck · video
+- `type`: slack · requirements · brd · wireframes · design_system · app · demo_script · deck · video
 - **Every Document create in the pipeline** sends `"origin": "pipeline"`, `"client_name"` and `"use_case"` (from the
   POC row read in Setup). One-off documents (`/poc-studio:<asset>` commands) are written by "One-off documents" below.
 - **App documents** (`type app`) always carry the app's **preview link** as `file_link`, by the "Preview link rule"
@@ -187,7 +187,9 @@ Before anything else when a run resumes, and again right before writing G4, comp
 2. For every gate the run state shows **approved** but Orbit does not (`gN_status` not `approved` or
    `gN_owner_approved` not true): write the missing approval **only** — that gate's `in_review` documents →
    `approved`, an Activity `gate_decided` approve (actor_type person, the owner, message "Approval recorded late"),
-   and on the POC row only `gN_status approved`, `gN_owner_approved true` and `last_activity`. **Never move `stage`,
+   and on the POC row only `gN_status approved`, `gN_owner_approved true` and `last_activity`. For `g2a` or `g2w`
+   approved in the run state whose BRD or wireframes document is not `approved` in Orbit: that document → `approved`
+   and an Activity `gate_decided` approve only (no `g2_status`, no `g2_owner_approved`). **Never move `stage`,
    `current_gate` or `status` backwards**, and send no `slack_notification`.
 3. For every document version in the run state that Orbit lacks (e.g. an app version): create it as in M5 (or as the
    approved app version above).
@@ -355,6 +357,8 @@ drive, unchanged:
 | RG approved in Claude | **M2 · G1** |
 | Scoping document done + reviewed, before its Claude gate | **M1a · G2 (BRD)** — see below |
 | Scoping approved in Claude | **M2a · G2 (BRD)** — see below |
+| Wireframes done + reviewed, before their Claude gate | **M1w · G2 (Wireframes)** — see below |
+| Wireframes approved in Claude | **M2w · G2 (Wireframes)** — see below |
 | Design System done + reviewed, before its Claude gate | **M1b · G2 (Design system)** |
 | Design System approved in Claude | **M2 · G2** (full) |
 | Person approves the Zen plan (Stage 4, before any builder agent runs) | **M4a** — Activity "Zen plan approved"; stage stays `5_build` |
@@ -369,6 +373,12 @@ drive, unchanged:
 
 ### Moment 1 — a gate is ready for review
 
+**M1w · G2 (Wireframes)** is written exactly like the BRD column below, with these values: upload
+`<slug>-wireframes.pdf` with `upload_public_file`; Document `type wireframes`, name "Wireframes", stage `3_scope`,
+gate_pack `g2`, status `in_review`, `file_kind pdf`, `summary` = page and component counts and which pages are maps;
+Activity `document_saved` and `gate_posted` g2; POC: **stage stays `3_scope`**, current_gate g2, g2_status waiting,
+status waiting, g2_summary (BRD approved + wireframes), gate_summary, `slack_notification true`.
+
 | | G1 Understand | G2 Plan — (a) BRD | G2 Plan — (b) Design system | G3 Build | G4 Deliver |
 |---|---|---|---|---|---|
 | Upload | RG .docx; **every client file found in discovery** (`01-requirement-gathering/files/`) | `scoping-document.docx` | design system .html | — | demo script .pdf; deck .pptx; demo video .mp4 → always Google Drive via "Video to Google Drive" (never `upload_public_file`) |
@@ -376,7 +386,7 @@ drive, unchanged:
 | gate_pack | g1 | g2 | g2 | g3 | g4 |
 | status | in_review (inputs final) | in_review | in_review | in_review | final |
 | Activity | `input_added` per input; `document_saved` for RG; `gate_posted` g1 | `document_saved`; `gate_posted` g2 | `document_saved`; `gate_posted` g2 | `document_saved`; `gate_posted` g3 | `document_saved` ×3; `stage_completed` g4, message "Deliver complete: demo-ready" (plus `gate_decided` g4 approve, actor_type person). If a deliver iteration is open: Iteration (update) status done, `resolved_document` = the deck's document_id, `resolved_at`; documents carry `from_iteration` |
-| POC (update) | stage `2_research_assess`, current_gate g1, g1_status waiting, status waiting, g1_summary, gate_summary, `slack_notification true` | **stage stays `3_scope`**, current_gate g2, g2_status waiting, status waiting, g2_summary (the BRD), gate_summary, `slack_notification true` | stage `4_design_system`, current_gate g2, g2_status waiting, status waiting, g2_summary (BRD approved + design system), gate_summary, `slack_notification true` | stage `6_finalize`, current_gate g3, g3_status waiting, status waiting, g3_summary, gate_summary, `solution_id` (the UnifyApps Headless solution `e_…`), `slack_notification true` | stage `8_demo_ready`, current_gate none, g4_status approved, status demo_ready, g4_summary, `slack_notification true` |
+| POC (update) | stage `2_research_assess`, current_gate g1, g1_status waiting, status waiting, g1_summary, gate_summary, `slack_notification true` | **stage stays `3_scope`**, current_gate g2, g2_status waiting, status waiting, g2_summary (the BRD), gate_summary, `slack_notification true` | stage `4_design_system`, current_gate g2, g2_status waiting, status waiting, g2_summary (BRD and wireframes approved + design system), gate_summary, `slack_notification true` | stage `6_finalize`, current_gate g3, g3_status waiting, status waiting, g3_summary, gate_summary, `solution_id` (the UnifyApps Headless solution `e_…`), `slack_notification true` | stage `8_demo_ready`, current_gate none, g4_status approved, status demo_ready, g4_summary, `slack_notification true` |
 
 `gN_summary` / `gate_summary`: 2–4 plain sentences on what the phase produced and what the person should check. For G3, include
 the test results from `04-build/test-report.md` (passed / fixed / still failing).
@@ -389,17 +399,21 @@ Record every new `document_id` in the run state.
   slack_notification.
 - **M2a (scoping approved, design system not done yet):** Document (update) the BRD → `approved`. Activity
   `gate_decided`, gate g2, decision approve, actor_type person, message "BRD approved". POC: current_gate none,
-  status running, last_activity "BRD approved; design system in progress". **No** `g2_owner_approved`, no
+  status running, last_activity "BRD approved; wireframes in progress". **No** `g2_owner_approved`, no
   `g2_status approved`, no stage change, no slack_notification. `g2_status` deliberately stays `waiting` until the
   design system is posted (M1b) and approved (M2); `last_activity` tells readers the BRD is approved. (G2 is approved
   only with the design system.)
-- **Confirm every approval (M2 and M2a) before the run moves on.** Right after the write, read the POC row back with
-  `get_records` (and, for M2a, the BRD document). M2 is confirmed when `gN_status` is `approved` and
-  `gN_owner_approved` is true; M2a when the BRD document is `approved`. Not confirmed → send the missing keys again (up
+- **M2w (wireframes approved, design system not done yet):** the same as M2a, for the wireframes document: Document
+  (update) → `approved`; Activity `gate_decided`, gate g2, decision approve, actor_type person, message "Wireframes
+  approved"; POC: current_gate none, status running, last_activity "Wireframes approved; design system in progress".
+  No `g2_owner_approved`, no `g2_status approved`, no stage change, no slack_notification.
+- **Confirm every approval (M2, M2a and M2w) before the run moves on.** Right after the write, read the POC row back with
+  `get_records` (and, for M2a or M2w, the BRD or wireframes document). M2 is confirmed when `gN_status` is `approved` and
+  `gN_owner_approved` is true; M2a when the BRD document is `approved`; M2w when the wireframes document is `approved`. Not confirmed → send the missing keys again (up
   to 3 tries in total). Still not confirmed → **the next stage does not start**: tell the person in one line what did
   not reach Orbit and ask once whether to retry or carry on without Orbit for now (if they carry on, the gate goes to
   `failed_writes` and the reconcile check below writes it later). Record the confirmation in the run state
-  (`orbit.confirmed: [g1, g2a, g2, g3]`).
+  (`orbit.confirmed: [g1, g2a, g2w, g2, g3]`).
 
 ### Moment 3 — the owner asks for changes instead of approving
 Iteration (create): status open, phase of the gate, **reason = their exact words**, related_document = the version
@@ -483,9 +497,10 @@ file), or status `stopped`. When it resumes: status running and a new last_activ
 - Write to any other object or tenant.
 
 ## Decisions (where this differs from `orbit-spec.md`)
-1. G2 is pushed twice: the BRD as soon as scoping is done (with a notification), then the design system (with a
-   notification); the stage moves to `4_design_system` only with the design system. G2 is approved with the design
-   system.
+1. G2 is pushed three times: the BRD as soon as scoping is done (with a notification), then the wireframes (with a
+   notification), then the design system (with a notification); the stage stays `3_scope` until the design system
+   moves it to `4_design_system`. G2 is approved with the design system. The wireframes are a `wireframes` document
+   in the Plan phase (`orbit-spec.md` predates them).
 2. G4 is written after the owner approves the collaterals in Claude.
 3. The demo script is uploaded as a PDF (`file_kind pdf`); the "walkthrough video" is the demo video. The video is
    always put on Google Drive (any size) through Drive for desktop, in the company shared drive `POC Studio Video
@@ -513,7 +528,7 @@ it needs a user to be created before it opens.
 
 ## One-off documents (`/poc-studio:<asset>` commands)
 
-The standalone commands (`/poc-studio:requirements`, `brd`, `design`, `app`, `collaterals`, run by
+The standalone commands (`/poc-studio:requirements`, `brd`, `wireframes`, `design`, `app`, `collaterals`, run by
 the `asset-run` skill) write **one-off documents**: rows in `orbit_studio_document` with `origin: "standalone"`, shown in
 POC Build Loop under **Assets** (`https://poc-build-loop-orbit.tensor-uat.unifyapps.com/assets/<type-slug>`). This
 section is the only place they are written from; `asset-run` calls it.
@@ -531,7 +546,7 @@ written as input rows either; only the Requirement Gathering document itself is 
   "use_case": "<Use case, as typed>",
   "poc": "<POC ID, only if one was given and verified; otherwise leave the key out>",
   "name": "<readable name, e.g. 'Acme — Invoice matching BRD'>",
-  "type": "<requirements | brd | design_system | app | demo_script | deck | video>",
+  "type": "<requirements | brd | wireframes | design_system | app | demo_script | deck | video>",
   "stage": "<from the table below>",
   "gate_pack": "none",
   "version": <N>,
@@ -552,6 +567,7 @@ Slugs are lower case, with every run of non-letters/digits replaced by `-` and n
 |---|---|---|---|---|
 | requirements | `requirements` | `2_research_assess` | docx | `upload_public_file` URL |
 | brd | `brd` | `3_scope` | docx | `upload_public_file` URL |
+| wireframes | `wireframes` | `3_scope` | pdf | `upload_public_file` URL |
 | design_system | `design-system` | `4_design_system` | html | `upload_public_file` URL (`text/html`; the same 20 MB rule as M1b) |
 | app | `app` | `6_finalize` | link | the app's **preview link** (Preview link rule), never a matrix link |
 | demo_script | `demo-script` | `7_collaterals` | pdf | `upload_public_file` URL |
@@ -643,12 +659,12 @@ one can become an edit to one of the plugin's SKILL.md files.
 
    - `ticket_no` and `created_at` use the same `Date.now()` value (get it with a one-line script).
    - `skill` is the POC Studio skill or agent the feedback is about, as its key: `requirement-gathering`, `research`,
-     `scoping-l1-first`, `design-system`, `poc-orchestrator`, `poc-collateral-studio`, `orbit-writeback`,
+     `scoping-l1-first`, `wireframes`, `design-system`, `poc-orchestrator`, `poc-collateral-studio`, `orbit-writeback`,
      `platform-master`, `ai-pm` — or `general`. Choose it in this order:
      1. The person names a skill or stage in the feedback (or as an argument) → that key.
      2. Otherwise decide from the feedback text and this session, by what stage or output it is about:
         intake, the brief, client sources → `requirement-gathering`; outside facts → `research`; the scoping/BRD
-        document, L1 scope → `scoping-l1-first`; palette, brand, components, the design system → `design-system`;
+        document, L1 scope → `scoping-l1-first`; page layouts, which components a page has, the wireframes, maps' layout → `wireframes`; palette, brand, components, the design system → `design-system`;
         how the run is driven, gates, the UnifyApps Headless build, app build quality → `poc-orchestrator`; demo script, deck,
         video → `poc-collateral-studio`; what shows in Orbit, statuses or links, Slack gate messages →
         `orbit-writeback`; the AI PM's reviews, rulings and lessons → `ai-pm`; Stage 4 pointers, the Zen plan review or the

@@ -1,7 +1,7 @@
 {
   "name": "poc-studio",
-  "version": "1.25.1",
-  "description": "UnifyApps POC pipeline: requirement gathering → scoping → design system → UnifyApps Headless build → collaterals, with an AI PM on every stage, a shared research skill, approval gates, and every file saved in the local client folder.",
+  "version": "1.26.0",
+  "description": "UnifyApps POC pipeline: requirement gathering → scoping → wireframes → design system → UnifyApps Headless build → collaterals, with an AI PM on every stage, a shared research skill, approval gates, and every file saved in the local client folder.",
   "author": {
     "name": "UnifyApps Solutions"
   },
