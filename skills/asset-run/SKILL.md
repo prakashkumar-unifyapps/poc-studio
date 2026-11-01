@@ -47,7 +47,8 @@ sensibly; anything still unclear is asked for in the one question below.
    Requirement Gathering document, `02-scoping/scoping-document.docx`, `02b-wireframes/wireframe-manifest.json`, `03-design-system/*-design-system.html`,
    `state.json` → `app.preview_url`, earlier one-off outputs in `state.json` → `standalone.runs`. Wireframes count only
    when approved (`stages.wireframes` = `approved`, or a `standalone.runs` wireframes entry with status `done`);
-   unapproved ones are not offered, and the run treats them as absent. Offer what you find
+   unapproved ones are not offered, and the run treats them as absent. In a chain (§ 6, "Approve and make <next
+   asset>"), the asset just approved is used without an offer. Otherwise, offer what you find
    in one line ("Found `02-scoping/scoping-document.docx` from 28 Oct — use it?"); the newest file first.
 3. Otherwise ask the person: **one** AskUserQuestion call (it can hold up to four questions — e.g. the collaterals
    choice as a multi-select next to a missing BRD — or one plain question for free text) that lists everything still
@@ -228,7 +229,18 @@ ruling, ASK_HUMAN, research requests. For the app, this is the Stage 4b walk ins
      reviews only);
    - for a design system or wireframes, also open the file (the HTML or the PDF) locally now (`open <file>` on a Mac, `xdg-open` on Linux);
    - any `check_this` assumptions and anything still open.
-3. Ask with AskUserQuestion: **Approve** / **Request changes** (they type the changes in "Other").
+3. Ask with AskUserQuestion. When the asset has a **next asset** (table below), three options, in this order:
+   **Approve and make <next asset>** / **Approve** / **Request changes** (they type the changes in "Other"). For
+   collaterals (the last asset) only **Approve** / **Request changes**.
+
+   | This asset | Next asset (its command) |
+   |---|---|
+   | requirements | BRD (`brd`) |
+   | brd | Wireframes (`wireframes`) |
+   | wireframes | Design system (`design`) |
+   | design | App (`app`) |
+   | app | Collaterals (`collaterals`) |
+   | collaterals | — |
 
 ## 6 · The decision
 
@@ -237,6 +249,21 @@ ruling, ASK_HUMAN, research requests. For the app, this is the Stage 4b walk ins
   record its look for the AI PM's logo-off test: `python3 "$R/lessons.py" look "<Client>" "<chrome · surface · shell ·
   concept>"`, read from the file's expression card. Run status `done`. Log it in `context-log.md`. Remove the
   `one-off` flag. Tell the person in one line that the asset is approved, with its Orbit link. The run ends here.
+- **Approve and make <next asset>** → everything **Approve** does, then tell the person in one line that the asset
+  is approved and the next one is starting, and run the next asset as its own one-off, exactly as if its command had
+  been typed with the same arguments (`<Client> | <Use case> [| <POC ID>]`; collaterals add the app's preview link):
+  - Skip the next command's Step 0 (this session already runs the latest version) and start at its Step 1:
+    `asset-run` § 1 for the next asset, then §§ 2–6.
+  - **The asset just approved is its input** without asking (it is the newest approved file in this workspace:
+    the BRD for wireframes, the wireframes and BRD for a design system, the design system and BRD for an app, the
+    app's preview link from this run's entry for collaterals). Earlier approved one-off assets in the workspace are
+    used the same way. Only what is still missing (a website, the folder setup and sign-in for an app, which
+    collaterals) is asked, in one question, as § 1 says.
+  - It stays a one-off: its own run entry, its own Orbit row under Assets (a new version if one exists), and the same
+    POC ID chip if one was given. **It never starts, joins or moves a POC run**, its stages or its gates, whatever
+    the workspace holds; the full loop is only ever `/poc-studio:start`.
+  - At its approval the same question comes again, so the person can carry on, one OK per asset, or stop with
+    **Approve**.
 - **Request changes** → log their words verbatim in `context-log.md` (a human decision for every later review),
   `python3 "$R/lessons.py" capture <workspace> <stage> "<their words>" --work <document_id prefix>` and `… record
   <workspace> <stage> changes --since <first_review> --work <document_id prefix>` (the `SA-…__v` prefix without its
@@ -252,3 +279,4 @@ ruling, ASK_HUMAN, research requests. For the app, this is the Stage 4b walk ins
 - Delete a file or an Orbit row (earlier versions become `superseded`; earlier files go to `_previous/`).
 - Type a password, or answer a `CONFIRM_REQUIRED` for the person.
 - Start the stage before its required prerequisites are in hand.
+- Turn a chain of one-off assets into a POC run, or offer to (the full loop starts only with `/poc-studio:start`).

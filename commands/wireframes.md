@@ -9,10 +9,10 @@ The arguments are `<Client> | <Use case> [| <POC ID>]`. The POC ID is optional; 
 
 ## Step 0 — make sure this is the latest POC Studio (always first)
 
-This command was loaded from **POC Studio v1.26.0**. Before anything else, run this check with the Bash tool:
+This command was loaded from **POC Studio v1.27.0**. Before anything else, run this check with the Bash tool:
 
 ```bash
-LOADED="1.26.0"
+LOADED="1.27.0"
 python3 - "$LOADED" <<'PY'
 import json, subprocess, sys, urllib.request
 loaded = sys.argv[1]
@@ -46,13 +46,13 @@ Then act on the last line it printed:
   three commands, then the same `/poc-studio:wireframes` command again:
   `/plugin marketplace update unifyapps-poc`, `/plugin update poc-studio@unifyapps-poc`, `/reload-plugins`.
 - **`UPDATE_CHECK_FAILED`** (no network to GitHub) → say in one line that the update check could not run and that you
-  are continuing on v1.26.0, then carry on.
+  are continuing on v1.27.0, then carry on.
 
 ## Step 1 — prerequisites (asked in the chat, before anything runs)
 
 Load the `asset-run` skill (Skill tool: `poc-studio:asset-run`) and follow its **1 · Prerequisites** for the asset
 **`wireframes`**: take each prerequisite from the arguments, then from an existing workspace for this client and use case
-(offer what you find in one line), then ask for everything still missing in **one** question. Never ask for a password.
+(offer what you find in one line; in a chain from "Approve and make <next asset>", the asset just approved is used without an offer), then ask for everything still missing in **one** question. Never ask for a password.
 
 - **Required:** Client name · Use case · a BRD or scoping document (.docx or PDF).
 - **Optional:** none.
