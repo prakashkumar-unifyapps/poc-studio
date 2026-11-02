@@ -142,11 +142,15 @@ retried on the next one-asset run.
 
 ```
 /poc-studio:feedback <what went well or wrong, what should change>
+/poc-studio:feedback status FB-<n>
 ```
 
-Records one piece of POC-level feedback in Orbit (`orbit_studio_feedback`) for the current POC, for the next skill
-analysis. It does not move the POC or post to Slack. (Plain `/feedback` is Claude Code's own bug-report command, so use
-the `poc-studio:` prefix.)
+Files one piece of feedback as a ticket (`FB-<n>`) on POC Build Loop's Feedback page
+(https://poc-build-loop-orbit.tensor-uat.unifyapps.com/feedback) and gives back its ID and link. It can be about a POC,
+a one-off asset, or POC Studio in general (no POC needed). Tickets are triaged there: assignee, priority, status.
+`status FB-<n>` shows a ticket's status, priority, assignee and latest activity from Orbit. Feedback does not move a
+POC or post to Slack, and skill proposals now come from iterations (change requests at gates) only. (Plain `/feedback`
+is Claude Code's own bug-report command, so use the `poc-studio:` prefix.)
 
 ## What happens
 

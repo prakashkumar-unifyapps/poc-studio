@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.28.0
+- **Feedback becomes tickets.** `/poc-studio:feedback <text>` files a ticket on POC Build Loop's Feedback page (https://poc-build-loop-orbit.tensor-uat.unifyapps.com/feedback) with a sequential ID `FB-<n>` (next number read from Orbit; a clash retries with the next number, at most 3 times), `status: open`, `priority: none` unless stated, and one `created` row on the new `orbit_studio_feedback_event` object. The reply gives the ticket ID and its link. Assignee, priority, status, due date and tags are set in the app; the plugin never updates or deletes a ticket.
+- **A POC is optional.** Feedback from a one-off asset workspace is filed without a POC (and without asking); otherwise the person can pick **No POC (general)**. The old "feedback can only be filed against a POC" rule is gone.
+- **`/poc-studio:feedback status FB-<n>`** (or `fb <n>`, `<n>`) reads a ticket's status, priority, assignee and latest activity from Orbit.
+- Feedback no longer feeds the skill analysis (no `analysis_status`): skill proposals come from iterations only. Iterations (Moment 3) are unchanged.
+- Skill keys: `asset-run` added, `research` removed.
+
 ## 1.27.0
 - **One OK to the next asset.** A one-off asset's approval question now also offers **Approve and make <next asset>** (Requirements → BRD → Wireframes → Design system → App → Collaterals). It approves the asset and starts the next one-off at once, with the asset just approved as its input (no re-upload, no "use it?" offer); only what is still missing is asked. The question repeats at each approval, so a person can go asset by asset with one OK each, or stop with Approve.
 - The chain stays one-off: each asset is its own Assets row (versioned as before) and never starts, joins or moves a POC run; the full loop is only `/poc-studio:start`.

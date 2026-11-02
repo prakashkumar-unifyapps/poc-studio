@@ -1,6 +1,6 @@
 ---
 name: orbit-writeback
-description: Keeps Orbit · POC Studio (orbit.uat.unifyapps.com) in step with a POC Studio run, records POC-level feedback (/poc-studio:feedback), or runs one write-back moment by hand when the person asks to test it — uploads each gate's files and writes Document, Activity, Iteration and POC rows at the six write-back moments (gate posted, gate approved, changes asked, stage moved, new version ready, blocked). Called by the poc-orchestrator before and after every gate; also verifies the POC ID at start.
+description: Keeps Orbit · POC Studio (orbit.uat.unifyapps.com) in step with a POC Studio run, files feedback tickets in POC Build Loop and reads their status (/poc-studio:feedback), or runs one write-back moment by hand when the person asks to test it — uploads each gate's files and writes Document, Activity, Iteration and POC rows at the six write-back moments (gate posted, gate approved, changes asked, stage moved, new version ready, blocked). Called by the poc-orchestrator before and after every gate; also verifies the POC ID at start.
 ---
 
 # Orbit write-back (POC Studio)
@@ -495,6 +495,7 @@ file), or status `stopped`. When it resumes: status running and a new last_activ
 - Send `slack_notification: true` outside moments 1 and 5.
 - Put a file's bytes or text in a row: upload it and save the link (no exceptions, the design system included).
 - Write to any other object or tenant.
+- Write assignee, due date, tags or analysis fields on a feedback ticket, or update or delete a ticket.
 
 ## Decisions (where this differs from `orbit-spec.md`)
 1. G2 is pushed three times: the BRD as soon as scoping is done (with a notification), then the wireframes (with a
@@ -612,76 +613,134 @@ version is written by the steps above when the reworked file is ready.
 `standalone.failed_writes`, and retry it at the start of the next run of any `/poc-studio:<asset>` command in this
 workspace. The local files are the deliverable either way: a failed Orbit write never stops the asset.
 
-## /feedback — POC-level feedback (`orbit_studio_feedback`)
+## /feedback — feedback tickets (`orbit_studio_feedback`, `orbit_studio_feedback_event`)
 
-`/poc-studio:feedback <text>` records one piece of **POC-level** feedback: how a POC run went, what the outputs got
-wrong, what should change in how POCs are run. It is **not** a change request on one document (that is an Iteration,
-Moment 3). Orbit's skill analysis reads these rows together with the iterations on its next "Run analysis", so each
-one can become an edit to one of the plugin's SKILL.md files.
+`/poc-studio:feedback <text>` files one piece of feedback as a **ticket** on POC Build Loop's Feedback page
+(https://poc-build-loop-orbit.tensor-uat.unifyapps.com/feedback): how a POC or a one-off asset went, what the outputs
+got wrong, what should change in POC Studio. It is **not** a change request on one document (that is an Iteration,
+Moment 3, unchanged). Each ticket has its own ID (`FB-<seq>`), a status, a priority and an activity history; people
+triage it in the app (assignee, priority, status). Feedback does not feed the skill analysis: skill proposals are made
+from iterations only. **A POC is optional.**
 
-1. **Find the POC.** Use the current workspace's POC ID: `state.json` → `orbit.poc_id` in the client workspace this
-   session is working in (look for `*/*/state.json` under the current folder, or `./orbit-test/state.json`). If the
-   session has none, or several and it is not clear which, ask once: "Which POC is this feedback for?" and accept a POC
-   ID or a client name.
-   A workspace with no POC ID but with one-off runs (`state.json` → `standalone`): still record the feedback, but
-   `orbit_studio_feedback` needs a `poc`, so ask once for a POC ID. If there is none, say feedback can only be filed
-   against a POC for now, and write nothing.
-2. **Read the POC row** with the `get_records` tool (Setup step 1 loads it) for `client_name` and `stage`:
-   - by POC ID: `{"host":"https://orbit.uat.unifyapps.com","objectId":"orbit_studio_poc","filters":[{"field":"poc_id","op":"EQUAL","values":["<poc_id>"]}],"limit":1}`;
+The plugin only **creates** tickets (and their `created` activity row) and **reads** them. It never updates or
+deletes a ticket.
+
+1. **Find the POC (optional).** Use the current workspace's POC ID: `state.json` → `orbit.poc_id` in the client
+   workspace this session is working in (look for `*/*/state.json` under the current folder, or
+   `./orbit-test/state.json`).
+   - A one-off asset workspace (`state.json` → `standalone`) without a POC ID → file it with **no POC**, and do not
+     ask. `client_name` = that `state.json`'s client.
+   - No POC and no one-off runs in this session (or several POCs and it is not clear which) → ask once: "Which POC is
+     this feedback for?", with the POCs found under this folder as options (show poc_id and client) and
+     **"No POC (general)"**. A POC ID or client name typed in is accepted too.
+   - A POC ID given or found → verify it and read `client_name` and `stage` with the `get_records` tool (Setup step 1
+     loads it):
+     `{"host":"https://orbit.uat.unifyapps.com","objectId":"orbit_studio_poc","filters":[{"field":"poc_id","op":"EQUAL","values":["<poc_id>"]}],"limit":1}`;
      if that filter shape is refused, use `"filter":{"poc_id":"<poc_id>"}`, and if that is refused too, fetch the row
-     by its id (the record id equals the POC ID);
-   - by client name: filter `client_slug` EQUAL the client name lower-cased with every run of non-letters/digits
-     replaced by `-`, `limit` 10. One row → use it; several → ask which (show poc_id and use_case); none → ask for the
-     POC ID.
-   - No row at all → say the POC was not found and ask for the right POC ID; write nothing.
-3. **Write one row** with the `apply_record_edits` tool, exactly as for every other object (How to write: one call,
-   leave out any key that would be `""` or `null`):
+     by its id (the record id equals the POC ID). By client name: filter `client_slug` EQUAL the client name
+     lower-cased with every run of non-letters/digits replaced by `-`, `limit` 10; one row → use it, several → ask
+     which.
+   - Not found → ask once to correct it, or file without a POC.
+2. **Next number.** `get_records` on `orbit_studio_feedback`:
+   `{"host":"https://orbit.uat.unifyapps.com","objectId":"orbit_studio_feedback","sort":{"field":"ticket_seq","order":"DESC"},"limit":1,"fields":["ticket_seq"]}`.
+   seq = that `ticket_seq` + 1, or 1 if there are none. **Never compute it from local state.**
+3. **Create the ticket** with one `apply_record_edits` call (How to write: leave out any key that would be `""` or
+   `null`). Get `now` once with a one-line script (`node -e 'console.log(Date.now())'`):
 
 ```json
 { "host": "https://orbit.uat.unifyapps.com", "objectId": "orbit_studio_feedback",
   "edits": [{ "op": "create", "properties": {
-    "ticket_no": "FB-<Date.now()>",
-    "poc": "<poc_id>",
-    "client_name": "<from the POC row>",
-    "poc_stage": "<the POC row's stage>",
-    "gate": "none",
+    "ticket_no": "FB-<seq>",
+    "ticket_key": "FB-<seq>",
+    "ticket_seq": <seq>,
     "title": "<the person's short title, or their first sentence cut to 90 characters>",
-    "feedback": "<their words, unedited; several points in one message stay in one row>",
+    "feedback": "<their words, unedited; several points in one message stay in one ticket>",
     "channel": "claude",
-    "given_by_name": "<the person's name>",
+    "channel_ref": "<the workspace path, or <client-slug>/<usecase-slug>>",
+    "given_by_name": "<the person giving the feedback>",
     "given_by_email": "<their email, if known>",
     "source": "user",
     "status": "open",
-    "analysis_status": "pending",
+    "priority": "none",
     "skill": "<skill key, or general>",
-    "created_at": <Date.now()> } }] }
+    "poc": "<poc_id, only when known and verified>",
+    "client_name": "<from the POC row; for a one-off run, the client from state.json>",
+    "poc_stage": "<the POC row's stage, only with a POC>",
+    "created_at": <now>,
+    "updated_at": <now> } }] }
 ```
 
-   - `ticket_no` and `created_at` use the same `Date.now()` value (get it with a one-line script).
-   - `skill` is the POC Studio skill or agent the feedback is about, as its key: `requirement-gathering`, `research`,
-     `scoping-l1-first`, `wireframes`, `design-system`, `poc-orchestrator`, `poc-collateral-studio`, `orbit-writeback`,
-     `platform-master`, `ai-pm` — or `general`. Choose it in this order:
-     1. The person names a skill or stage in the feedback (or as an argument) → that key.
-     2. Otherwise decide from the feedback text and this session, by what stage or output it is about:
-        intake, the brief, client sources → `requirement-gathering`; outside facts → `research`; the scoping/BRD
-        document, L1 scope → `scoping-l1-first`; page layouts, which components a page has, the wireframes, maps' layout → `wireframes`; palette, brand, components, the design system → `design-system`;
-        how the run is driven, gates, the UnifyApps Headless build, app build quality → `poc-orchestrator`; demo script, deck,
-        video → `poc-collateral-studio`; what shows in Orbit, statuses or links, Slack gate messages →
-        `orbit-writeback`; the AI PM's reviews, rulings and lessons → `ai-pm`; Stage 4 pointers, the Zen plan review or the
-        browser fallback → `platform-master`.
-     3. It could be several, or none fits clearly → `general` (Orbit's skill analysis places it).
-   - Optional: `"quote"` (exact short words worth keeping verbatim) and `"channel_ref"` (e.g. the workspace path).
+   - `ticket_no` (the primary key) and `ticket_key` are the same `FB-<seq>`; `ticket_seq` is the integer and has a
+     unique index, so every create sets it.
+   - `poc`, `poc_stage` (and `client_name` when there is no client at all): leave the key out when unknown.
+   - `priority` is `"none"` unless the person clearly states one: `urgent`, `high`, `medium` or `low`.
+   - Optional: `"quote"` (exact short words worth keeping verbatim).
    - `given_by_name` / `given_by_email` are **the person giving the feedback**, not the POC owner: take them from the
      connected Slack profile of the session's user if there is one, else from `git config user.name` /
      `git config user.email`, else ask once. Leave `given_by_email` out if it is not known.
-   - The reply must say `"ok": true` for the row; read it back with `get_records` on `orbit_studio_feedback` filtered on
-     `ticket_no` to confirm.
-4. **Nothing else.** No Activity row, no POC update, no `slack_notification`, no Slack message: feedback does not move
-   the POC.
-5. **Reply in one line:** `Recorded as FB-<…> for <client_name>, under <skill name or General>. It goes into the next skill analysis.` If the write
-   fails, show the error in one line and what to do (e.g. run `/ua:setup` here on orbit.uat.unifyapps.com and sign
-   in, then run `/poc-studio:feedback` again). A failed feedback write is not retried later and is not added to
-   `failed_writes`.
+   - **Never send** `assignee_name`, `assignee_email`, `due_date`, `tags` (people set these in the app),
+     `analysis_status`, `analysis_run_id`, `skill_proposal` or `incorporated_in_version`.
+   - `skill` is the POC Studio skill or agent the feedback is about, as its key. Choose it in this order:
+     1. The person names a skill or stage in the feedback (or as an argument) → that key.
+     2. Otherwise decide from the feedback text and this session:
+
+        | Key | When |
+        |---|---|
+        | `requirement-gathering` | intake, the brief, client sources |
+        | `scoping-l1-first` | the scoping / BRD document, L1 scope |
+        | `wireframes` | the wireframes, page layouts, which components a page has |
+        | `design-system` | palette, brand, components, the design system |
+        | `poc-orchestrator` | how the run is driven, gates, the UnifyApps Headless build, app quality |
+        | `asset-run` | the one-asset commands (`/poc-studio:requirements`, `brd`, `wireframes`, `design`, `app`, `collaterals`) |
+        | `platform-master` | Stage 4 pointers, the Zen plan review, the browser fallback |
+        | `poc-collateral-studio` | demo script, deck, video |
+        | `orbit-writeback` | what shows in Orbit, statuses, links, Slack gate messages |
+        | `ai-pm` | the AI PM's reviews, rulings, lessons |
+
+     3. It could be several, or none fits clearly → `general`.
+   - **On a duplicate or unique-key error** (someone filed at the same moment): repeat step 2 and the create with the
+     new number, **at most 3 times**.
+   - Still failing → show the error in one line and what to do (e.g. run `/ua:setup` here on orbit.uat.unifyapps.com
+     and sign in, then run `/poc-studio:feedback` again). A failed feedback write is not retried later and is not
+     added to `failed_writes`.
+4. **Create the activity row** right after, one `apply_record_edits` call on `orbit_studio_feedback_event`:
+
+```json
+{ "host": "https://orbit.uat.unifyapps.com", "objectId": "orbit_studio_feedback_event",
+  "edits": [{ "op": "create", "properties": {
+    "event_id": "FEV-<now>-<4 random digits>",
+    "ticket": "FB-<seq>",
+    "ticket_key": "FB-<seq>",
+    "type": "created",
+    "message": "Ticket created from Claude Code",
+    "actor_name": "<given_by_name>",
+    "actor_email": "<given_by_email, if known>",
+    "actor_type": "person",
+    "channel": "claude",
+    "created_at": <the ticket's created_at> } }] }
+```
+
+   If only this row fails, say so in one line; the ticket still stands.
+5. **Read back** the ticket with `get_records` on `orbit_studio_feedback`, filter `ticket_key` EQUAL `FB-<seq>`, and
+   confirm it.
+6. **Reply in one line:**
+   `Logged FB-<seq> for <client, or General>, under <skill name or General>. Track it: https://poc-build-loop-orbit.tensor-uat.unifyapps.com/feedback/FB-<seq>`
+7. **Nothing else.** No Iteration row, no Activity row on the POC, no POC update, no `slack_notification`, no Slack
+   message.
+
+### Ticket status
+
+`/poc-studio:feedback status FB-12` (also `status 12`, `fb 12`, `FB-12` or `12`) is a **read only**; write nothing.
+- Read the ticket: `get_records` on `orbit_studio_feedback`, filter `ticket_key` EQUAL `FB-12`, `limit` 1. Not found →
+  say so in one line.
+- Read its activity: `get_records` on `orbit_studio_feedback_event`, filter `ticket_key` EQUAL `FB-12`, sort
+  `{field: "created_at", order: "DESC"}`, `limit` 5.
+- Reply in 2–4 lines: the title; status (by its label); priority (by its label); the assignee (`assignee_name`, or
+  "Unassigned"); the client or POC (or General); the newest activity line; and the link
+  `https://poc-build-loop-orbit.tensor-uat.unifyapps.com/feedback/FB-12`.
+- Status labels: `open` New · `in_proposal` In proposal · `in_review` Under review · `incorporated` / `resolved`
+  Incorporated · `not_incorporated` Not incorporated · `dismissed` Dismissed.
+- Priority labels: `urgent` Urgent · `high` High · `medium` Medium · `low` Low · `none` (or missing) No priority.
 
 ## Testing a moment by hand
 When the person asks to test a write-back moment directly (e.g. "upload this file as the G2 BRD", "log this as a change

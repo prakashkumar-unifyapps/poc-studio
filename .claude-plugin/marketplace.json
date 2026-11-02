@@ -12,7 +12,7 @@
       "name": "poc-studio",
       "source": "./",
       "description": "End-to-end UnifyApps POC pipeline: requirement gathering → scoping → wireframes → design system → UnifyApps Headless build → collaterals, reviewed and approval-gated at every stage.",
-      "version": "1.27.0"
+      "version": "1.28.0"
     }
   ]
 }
