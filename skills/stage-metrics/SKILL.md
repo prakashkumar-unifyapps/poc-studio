@@ -76,7 +76,9 @@ also mid-stage (an open stage counts up to now).
   automations, evaluation runs and the platform's generate tools use the tenant's models server-side, when the app is
   tested (Stage 4b walk) or recorded (collaterals). Those numbers live on the tenant, not in Claude Code's logs:
   evaluation runs carry `totalTokens` / `cost` / `agentCost` (Headless `evaluation` tool `get_run_cost_and_latency`).
-  Say so if the person asks about the build stage's full cost.
+  An agent's run trace (`read_trace`) does **not**: checked on a real run (Nov 2026), it holds the steps, the prompts,
+  the tools offered and the tool calls, but no token, cost or timing field. The model is named only inside the system
+  prompt (e.g. `gpt-5.6-luna`). Say so if the person asks about the build stage's full cost.
 - **No cost figures.** Prices change; if a cost estimate is asked for, multiply the per-model tokens by the current
   published prices (input, output, cache write and cache read are priced differently).
 - A run started before this skill existed has no marks: its report shows all calls as `outside stages`. Marks
