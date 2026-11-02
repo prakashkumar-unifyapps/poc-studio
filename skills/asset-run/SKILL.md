@@ -19,7 +19,11 @@ The full pipeline (`/poc-studio:start`, `poc-orchestrator`) is not involved and 
 | `collaterals` | `/poc-studio:collaterals` | `poc-collateral-studio` | `collaterals` | `demo_script`, `deck`, `video` (the ones chosen) | `05-collaterals/` |
 
 Load every skill with the Skill tool by its plugin name (`poc-studio:<skill>`). `R` below is the AI PM's scripts folder:
-`R=$(dirname "$(find ~/.claude/plugins -path '*ai-pm/scripts/lessons.py' | head -1)")`. On a Mac, every Bash command
+`R=$(dirname "$(find ~/.claude/plugins -path '*ai-pm/scripts/lessons.py' | head -1)")`. `M` is the stage-metrics
+skill's scripts folder: `M=$(dirname "$(find ~/.claude/plugins -path '*stage-metrics/scripts/metrics.py' | head -1)")`;
+mark the run with `python3 "$M/metrics.py" mark <workspace> <stage> running` when the stage skill starts, `in_review`
+when it goes to the AI PM, `awaiting_approval` at the approval question, and `changes` / `approved` at the decision
+(a failed mark never stops the run). On a Mac, every Bash command
 that runs `python3`, `node`, `ffmpeg`, `soffice` or `pandoc` starts with `source ~/.local/poc-collateral/env.sh && `
 once that file exists.
 
@@ -248,7 +252,9 @@ ruling, ASK_HUMAN, research requests. For the app, this is the Stage 4b walk ins
   back. `python3 "$R/lessons.py" record <workspace> <stage> approved --since <first_review> --work <document_id prefix>`. For a design system, also
   record its look for the AI PM's logo-off test: `python3 "$R/lessons.py" look "<Client>" "<chrome · surface · shell ·
   concept>"`, read from the file's expression card. Run status `done`. Log it in `context-log.md`. Remove the
-  `one-off` flag. Tell the person in one line that the asset is approved, with its Orbit link. The run ends here.
+  `one-off` flag. Mark it `approved` and print `python3 "$M/metrics.py" report <workspace> --stage <stage>`. Tell the
+  person in one line that the asset is approved, with its Orbit link, then show the stage's metrics row (models, tokens,
+  time). The run ends here.
 - **Approve and make <next asset>** → everything **Approve** does, then tell the person in one line that the asset
   is approved and the next one is starting, and run the next asset as its own one-off, exactly as if its command had
   been typed with the same arguments (`<Client> | <Use case> [| <POC ID>]`; collaterals add the app's preview link):

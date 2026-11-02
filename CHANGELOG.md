@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.29.0
+- **Stage metrics: tokens, models and time per stage and overall.** New `stage-metrics` skill (`metrics.py`). The orchestrator (and `asset-run` for one-off assets) marks every stage status change in `<workspace>/metrics/events.jsonl`; after each approval it prints the stage's cut — models used, calls, input / output / cache-read / cache-write tokens, work time (running + AI PM review), gate wait and total — plus the run's Overall row, and saves the full table to `metrics/metrics.md` / `metrics.json`. Numbers come from the usage Claude Code already logs for every call (main conversation and subagents such as the AI PM, split by agent), counted once per call, across every session in the POC folder. Not counted: tokens used inside UnifyApps Headless / Zen's own backend. No cost figures (prices change).
+
 ## 1.28.0
 - **Feedback becomes tickets.** `/poc-studio:feedback <text>` files a ticket on POC Build Loop's Feedback page (https://poc-build-loop-orbit.tensor-uat.unifyapps.com/feedback) with a sequential ID `FB-<n>` (next number read from Orbit; a clash retries with the next number, at most 3 times), `status: open`, `priority: none` unless stated, and one `created` row on the new `orbit_studio_feedback_event` object. The reply gives the ticket ID and its link. Assignee, priority, status, due date and tags are set in the app; the plugin never updates or deletes a ticket.
 - **A POC is optional.** Feedback from a one-off asset workspace is filed without a POC (and without asking); otherwise the person can pick **No POC (general)**. The old "feedback can only be filed against a POC" rule is gone.
