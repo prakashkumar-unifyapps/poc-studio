@@ -138,6 +138,21 @@ type a password: sign-ins happen in the browser window the command opens. The Or
 set up in the folder (`/ua:setup` on `orbit.uat.unifyapps.com`); without it the asset is still made, and the write is
 retried on the next one-asset run.
 
+## Tokens, models and time
+
+Every stage status change is marked in `<workspace>/metrics/events.jsonl`. After each approval the run prints that
+stage's cut — models used, calls, input / output / cache tokens, work time and time waiting for approval — plus the
+run's overall totals, from the usage Claude Code already logs for every model call (the AI PM subagent included). The
+full table is saved in `<workspace>/metrics/metrics.md` (and `metrics.json`). Any time:
+
+```
+python3 <plugin>/skills/stage-metrics/scripts/metrics.py report <workspace> [--stage <stage>]
+```
+
+UnifyApps Headless runs inside Claude Code (planning in the main conversation, builders as `ua:*` subagents), so it is
+counted and shown separately. Not counted: models the built app runs on the UnifyApps platform itself (its AI agents,
+LLM nodes in automations, evaluation runs).
+
 ## Feedback
 
 ```
@@ -196,6 +211,7 @@ skills/wireframes/                 low-fidelity wireframes from the BRD: render.
                                    coverage.py (against the BRD), references/: spec format, example, map component
 skills/design-system/              v10 (component kit + composition contract, max 5 screens; UnifyApps stand-in logo)
 skills/asset-run/                  one asset end to end: prerequisites, stage, AI PM, one-off Orbit row, approval
+skills/stage-metrics/              tokens, models and time per stage and overall (metrics.py mark / report)
 skills/platform-master/            UnifyApps platform expert for Stage 4: pointers, Zen plan review, browser fallback
                                    (+ references/: use-case pointers, plan-review checklist, API, connectors, graph, governance)
 skills/ai-pm/                      the AI PM: reviews every stage, re-runs its checks, Stage 4b build walk, lessons

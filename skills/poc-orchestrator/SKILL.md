@@ -62,6 +62,7 @@ if a same-named skill exists from elsewhere, prefer the `poc-studio:` one.
 | Any stage, outside facts | `research` |
 | Every gate, Orbit write-back | `orbit-writeback` |
 | Every stage, review + questions (the AI PM) | `ai-pm`, run by the `ai-pm` agent |
+| Every stage, tokens / models / time | `stage-metrics` (`metrics.py mark` at every status change, `report` after each approval) |
 
 **All research goes through the `research` skill.** When a stage (or you) needs outside facts, the stage's own
 instructions already say to call `research`; make sure it does. Only if `research` is unavailable may a stage
@@ -132,7 +133,9 @@ and the collateral brief (`brief.json` → `"poc_id"`, internal only). Create th
 ```
 
 Status values: `pending` → `running` → `in_review` → `awaiting_approval` → `approved` (or back to `running` on
-requested changes). Update it at every transition.
+requested changes). Update it at every transition, and at the same moment record it for the stage metrics:
+`python3 "$M/metrics.py" mark <workspace> <stage> <status>` (`changes` when the person requests changes, `skipped`
+for a skipped stage; the `stage-metrics` skill has the table). A failed mark is logged and never stops the stage.
 
 ### context-log.md
 
@@ -239,7 +242,10 @@ Remove the autopilot file, then:
    changes in "Other").
 3. **Approve** → mark the stage `approved` in `state.json`, log it, run `python3 "$R/lessons.py" record <workspace>
    <stage> approved`, run the Orbit approval write (M2 / M2a / M2w) and **confirm it landed** (orbit-writeback: "Confirm
-   every approval"); only then move on to the next stage.
+   every approval"). Then mark it (`metrics.py mark <workspace> <stage> approved`) and print the **stage metrics**:
+   `python3 "$M/metrics.py" report <workspace> --stage <stage>`. Show the person the stage's row and the Overall row
+   (models, tokens, work time, gate wait) and log the stage row in `context-log.md`; after the last stage, show the
+   whole table as the run's overall information. Only then move on to the next stage.
    **Changes** → log the feedback verbatim (it is now a human decision for every later review), and also
    `python3 "$R/lessons.py" capture <workspace> <stage> "<their words, verbatim>"` and `… record <workspace> <stage>
    changes`, so the AI PM turns it into a lesson for every later POC. If the feedback names something the AI PM's
@@ -339,6 +345,9 @@ except at the start (the POC ID must be verified).
    (`find ~/.claude/plugins -path '*ai-pm/scripts/lessons.py' -exec dirname {} \;`), and `W` the wireframes skill's
    (`find ~/.claude/plugins -path '*wireframes/scripts/render.py' -exec dirname {} \; | head -1`); give both paths to
    the AI PM in every request (`scripts: {ai_pm: <R>, wireframes: <W>}`).
+   - Let `M` be the stage-metrics skill's `scripts/` folder
+     (`M=$(dirname "$(find ~/.claude/plugins -path '*stage-metrics/scripts/metrics.py' | head -1)")`); record it in
+     `state.json` → `"scripts"."metrics"`. Every stage status change from here on is also marked with it (above).
    - `python3 "$R/lessons.py" init` (seeds the lesson bank once per machine; never overwrites) and
      `pip install pyyaml` into the shared venv if `python3 -c "import yaml"` fails.
    - Set `state.json` → `"owner_profile"`: the POC owner's email in lower case, from Orbit setup (`orbit.owner.email`).
