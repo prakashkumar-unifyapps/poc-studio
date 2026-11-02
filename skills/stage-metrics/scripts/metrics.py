@@ -20,8 +20,9 @@ Time:
   gate wait  = time in awaiting_approval (waiting for the person to approve)
   total      = work time + gate wait
 Tokens are assigned to the stage whose window (running → approved) contains the call; calls outside every stage
-window are reported as "outside stages" (setup, resume chatter). Only work done inside Claude Code is counted:
-tokens used inside UnifyApps Headless / Zen's own backend are not in these logs.
+window are reported as "outside stages" (setup, resume chatter). UnifyApps Headless runs inside Claude Code, so its
+planning and its ua:* builder subagents are counted. Not counted: models the built app runs on the UnifyApps platform
+(its AI agents, LLM nodes in automations, evaluation runs).
 """
 import datetime, glob, json, os, sys
 
@@ -109,13 +110,16 @@ def intervals(events, end_time):
 # ---------------------------------------------------------------- transcripts
 
 def transcript_files(root, since):
-    files = glob.glob(os.path.join(root, "*", "*.jsonl")) + glob.glob(os.path.join(root, "*", "*", "subagents", "*.jsonl"))
+    # main: <project>/<session>.jsonl · subagents: <project>/<session>/subagents/[<subdir>/]agent-<id>.jsonl
+    files = glob.glob(os.path.join(root, "*", "*.jsonl")) + \
+        glob.glob(os.path.join(root, "*", "*", "subagents", "**", "*.jsonl"), recursive=True)
     cutoff = since.timestamp() - 3600 if since else 0
     return [f for f in files if os.path.getmtime(f) >= cutoff]
 
 
 def agent_label(path, entry):
-    """main | subagent:<type>. Subagent type comes from a sibling .meta.json when Claude Code writes one."""
+    """main | subagent:<type>. The type is the agentType in the sibling agent-<id>.meta.json Claude Code writes
+    (UnifyApps Headless builders are "ua:<name>", the reviewer "poc-studio:ai-pm" or "ai-pm")."""
     if "/subagents/" not in path and not entry.get("isSidechain"):
         return "main"
     meta = path[:-len(".jsonl")] + ".meta.json"
@@ -263,6 +267,10 @@ def row(name, b):
             f"{fmt_t(b['wait_seconds'])} | {fmt_t(b['work_seconds'] + b['wait_seconds'])} |")
 
 
+def is_headless(agent):
+    return agent.startswith("subagent:ua:")
+
+
 HEAD = ("| Stage | Model(s) | Calls | Input | Output | Cache read | Cache write | Work time | Gate wait | Total time |\n"
         "|---|---|---|---|---|---|---|---|---|---|")
 
@@ -273,6 +281,12 @@ def detail(name, b):
         lines.append(f"- {m}: {t['calls']} calls · in {fmt_n(t['input'])} · out {fmt_n(t['output'])} "
                      f"(thinking {fmt_n(t['thinking'])}) · cache read {fmt_n(t['cache_read'])} · "
                      f"cache write {fmt_n(t['cache_write'])}" + (f" · web searches {t['web_search']}" if t["web_search"] else ""))
+    ua = [t for a, t in b["by_agent"].items() if is_headless(a)]
+    if ua:
+        tot = {k: sum(t[k] for t in ua) for k in ("calls", "input", "output", "cache_read", "cache_write")}
+        lines.append(f"UnifyApps Headless builders (ua:*): {tot['calls']} calls · in {fmt_n(tot['input'])} · "
+                     f"out {fmt_n(tot['output'])} · cache read {fmt_n(tot['cache_read'])} · "
+                     f"cache write {fmt_n(tot['cache_write'])}")
     if len(b["by_agent"]) > 1 or any(a != "main" for a in b["by_agent"]):
         lines.append("by agent: " + " · ".join(f"{a} {fmt_n(t['output'])} out / {t['calls']} calls"
                                                 for a, t in sorted(b["by_agent"].items())))
@@ -295,8 +309,8 @@ def markdown(rep, only=None):
         out.append(row(name, b))
     out.append(row("**Overall**", rep["overall"]))
     out += ["", detail("Overall", rep["overall"]), "",
-            "_Work time = running + AI PM review; gate wait = waiting for approval. "
-            "Tokens used inside UnifyApps Headless / Zen's own backend are not included._"]
+            "_Work time = running + AI PM review; gate wait = waiting for approval. UnifyApps Headless (planning and "
+            "ua:* builders) is included; models running on the UnifyApps platform itself are not._"]
     return "\n".join(out)
 
 

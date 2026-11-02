@@ -149,7 +149,9 @@ full table is saved in `<workspace>/metrics/metrics.md` (and `metrics.json`). An
 python3 <plugin>/skills/stage-metrics/scripts/metrics.py report <workspace> [--stage <stage>]
 ```
 
-Only work done inside Claude Code is counted (not tokens used inside UnifyApps Headless / Zen's own backend).
+UnifyApps Headless runs inside Claude Code (planning in the main conversation, builders as `ua:*` subagents), so it is
+counted and shown separately. Not counted: models the built app runs on the UnifyApps platform itself (its AI agents,
+LLM nodes in automations, evaluation runs).
 
 ## Feedback
 

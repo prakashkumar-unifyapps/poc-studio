@@ -68,8 +68,15 @@ also mid-stage (an open stage counts up to now).
 - **Tokens.** Each call is counted once (Claude Code logs one call on several lines; they share a message id) and
   goes to the stage whose window contains its timestamp. Only calls made from this POC's folder count, across every
   session, so a run spread over days and resumes still adds up.
-- **Not counted:** tokens used inside UnifyApps Headless / Zen's own backend, and anything outside Claude Code. Say
-  so if the person asks about the build stage's cost.
+- **UnifyApps Headless is counted.** Headless (`ua`) is a Claude Code plugin: its planning (Sonic and Zen) runs in
+  the main conversation and its builders (`ua:app-agent`, `ua:automation-agent`, …) are Claude Code subagents, so
+  their calls are in the same logs. The report shows them as `subagent:ua:<builder>` and adds a "UnifyApps Headless
+  builders" line. Its MCP tools (application-builder, object, …) are platform reads and writes, not model calls.
+- **Not counted: models running on the UnifyApps platform itself.** The built app's own AI agents, LLM nodes in
+  automations, evaluation runs and the platform's generate tools use the tenant's models server-side, when the app is
+  tested (Stage 4b walk) or recorded (collaterals). Those numbers live on the tenant, not in Claude Code's logs:
+  evaluation runs carry `totalTokens` / `cost` / `agentCost` (Headless `evaluation` tool `get_run_cost_and_latency`).
+  Say so if the person asks about the build stage's full cost.
 - **No cost figures.** Prices change; if a cost estimate is asked for, multiply the per-model tokens by the current
   published prices (input, output, cache write and cache read are priced differently).
 - A run started before this skill existed has no marks: its report shows all calls as `outside stages`. Marks
